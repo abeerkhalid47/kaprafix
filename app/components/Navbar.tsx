@@ -1,35 +1,53 @@
 'use client';
-import Image from 'next/image';
+import { useState } from 'react';
 import { useCart } from '@/context/CartContext';
+import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
+import { ShoppingBag } from 'lucide-react';
 
 export default function Navbar() {
   const { itemCount, openCart } = useCart();
+  const { scrollY } = useScroll();
+  const [hidden, setHidden] = useState(false);
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious() ?? 0;
+    if (latest > previous && latest > 150) {
+      setHidden(true);
+    } else {
+      setHidden(false);
+    }
+  });
 
   return (
-    <nav className="navbar">
+    <motion.nav
+      variants={{
+        visible: { y: 0, opacity: 1 },
+        hidden: { y: "-100%", opacity: 0 }
+      }}
+      initial="visible"
+      animate={hidden ? "hidden" : "visible"}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="navbar"
+    >
       <div className="container">
         <div className="navbar__inner">
-          <a href="/" className="navbar__logo" aria-label="Easy Fit Tape Home">
-            <Image src="/images/logo.png" alt="Easy Fit Tape" width={140} height={36} priority />
+          <a href="/" className="navbar__logo-text" aria-label="KAPRAFIX Home">
+            K A P R A F I X
           </a>
           <div className="navbar__actions">
             <button
               id="navbar-cart-btn"
-              className="navbar__cart-btn"
+              className="navbar__cart-btn-luxury"
               onClick={openCart}
               aria-label="Open cart"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <path d="M16 10a4 4 0 0 1-8 0"/>
-              </svg>
-              Cart
-              {itemCount > 0 && <span className="cart-count">{itemCount}</span>}
+              <ShoppingBag size={18} strokeWidth={1.5} />
+              <span className="navbar__cart-text">Bag</span>
+              <span className="cart-count-luxury">({itemCount})</span>
             </button>
           </div>
         </div>
       </div>
-    </nav>
+    </motion.nav>
   );
 }

@@ -2,15 +2,9 @@ import { getProduct } from '@/lib/shopify';
 import AnnouncementBar from '../components/AnnouncementBar';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
-import TrustBadges from '../components/TrustBadges';
-import Benefits from '../components/Benefits';
-import VideoSection from '../components/VideoSection';
-import Reviews from '../components/Reviews';
-import FAQ from '../components/FAQ';
-import FinalCTA from '../components/FinalCTA';
+import ProductDetailSections from '../components/ProductDetailSections';
 import Footer from '../components/Footer';
 import CartDrawer from '../components/CartDrawer';
-import StickyAddToCart from '../components/StickyAddToCart';
 
 export default async function ProductPage() {
   const product = await getProduct();
@@ -21,16 +15,10 @@ export default async function ProductPage() {
       <Navbar />
       <main>
         <Hero product={product} />
-        <TrustBadges />
-        <Benefits />
-        <VideoSection />
-        <Reviews />
-        <FAQ />
-        <FinalCTA product={product} isProductPage={true} />
+        <ProductDetailSections />
       </main>
       <Footer />
       <CartDrawer />
-      <StickyAddToCart product={product} />
     </>
   );
 }

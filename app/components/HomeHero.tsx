@@ -1,65 +1,132 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import type { ShopifyProduct } from '@/lib/shopify';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
+
+const TAPE_IMAGES = [
+  '/images/tape_bg_1.png',
+  '/images/tape_bg_2.png',
+  '/images/tape_bg_3.png',
+];
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.2, delayChildren: 0.1 }
+  }
+};
+
+const itemVariants: Variants = {
+  hidden: { y: 40, opacity: 0 },
+  show: { 
+    y: 0, 
+    opacity: 1, 
+    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } 
+  }
+};
+
+const slideVariants = {
+  enter: {
+    x: '-100%',
+    opacity: 0,
+  },
+  center: {
+    zIndex: 1,
+    x: 0,
+    opacity: 1,
+  },
+  exit: {
+    zIndex: 0,
+    x: '100%',
+    opacity: 0,
+  }
+};
 
 export default function HomeHero({ product }: { product: ShopifyProduct }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % TAPE_IMAGES.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
-    <section className="hero">
-      <div className="container">
-        <div className="hero__grid">
-          {/* Main Image Showcase */}
-          <div className="gallery">
-            <div className="gallery__main">
-              <Image
-                src={product.images[0]?.url ?? '/images/product-1.png'}
-                alt={product.images[0]?.altText ?? product.title}
-                fill
-                style={{ objectFit: 'cover' }}
-                sizes="(max-width:768px) 100vw, 50vw"
-                priority
-              />
-            </div>
+    <section className="hero-luxury">
+      {/* Background Slider */}
+      <div className="hero-luxury__bg-slider">
+        <AnimatePresence initial={false}>
+          <motion.div
+            key={currentIndex}
+            className="hero-luxury__bg-slide"
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{
+              x: { duration: 1.2, ease: [0.16, 1, 0.3, 1] },
+              opacity: { duration: 1.2 }
+            }}
+          >
+            <Image
+              src={TAPE_IMAGES[currentIndex]}
+              alt="Kaprafix Background"
+              fill
+              style={{ objectFit: 'cover' }}
+              sizes="100vw"
+              priority={currentIndex === 0}
+            />
+          </motion.div>
+        </AnimatePresence>
+        <div className="hero-luxury__overlay" />
+      </div>
+
+      <div className="container" style={{ maxWidth: '900px', position: 'relative', zIndex: 10 }}>
+        <motion.div 
+          className="hero-luxury__content"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+        >
+          {/* Subtle Label */}
+          <div style={{ overflow: 'hidden' }}>
+            <motion.div variants={itemVariants} className="hero-luxury__label">
+              The Ultimate Fabric Adhesive
+            </motion.div>
           </div>
 
-          {/* Marketing Copy */}
-          <div className="product-info" style={{ justifyContent: 'center' }}>
-            <div>
-              <span className="badge badge-sale">🔥 FLAT 50% OFF - TODAY ONLY</span>
-            </div>
-
-            <h1 className="product-info__title" style={{ fontSize: 'clamp(28px, 4.5vw, 44px)', lineHeight: 1.15 }}>
-              Fix, Hem & Repair Clothes In Seconds — No Sewing Required
-            </h1>
-
-            <p className="product-info__desc">
-              Easy Fit Tape is the ultimate iron-on fabric adhesive. Shorten trousers, mend torn seams, and adjust curtains quickly at home. Creates a strong, machine-washable, and completely invisible bond in minutes.
-            </p>
-
-            <ul className="benefits-list" style={{ margin: '12px 0 24px 0' }}>
-              <li>
-                <span className="check">✓</span>
-                <span><strong>No Needle or Thread Needed</strong> – Perfect for quick alterations</span>
-              </li>
-              <li>
-                <span className="check">✓</span>
-                <span><strong>100% Invisible Finish</strong> – Blends neatly inside your clothing</span>
-              </li>
-              <li>
-                <span className="check">✓</span>
-                <span><strong>Wash-Resistant Hold</strong> – Stays strong through multiple machine washes</span>
-              </li>
-            </ul>
-
-            <div>
-              <a href="/product" className="btn btn-primary btn-lg btn-full text-center" style={{ display: 'flex' }}>
-                Order Now — Shop 50% OFF
-              </a>
-              <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center', gap: 16, fontSize: '13px', color: 'var(--text-muted)' }}>
-                <span>🚚 Cash on Delivery</span>
-                <span>⚡ 3–5 Day Delivery</span>
-              </div>
-            </div>
+          {/* Massive Headline */}
+          <div style={{ overflow: 'hidden', paddingBottom: '8px' }}>
+            <motion.h1 variants={itemVariants} className="hero-luxury__title hero-luxury__title--light">
+              Fix, Hem & Repair Clothes In Seconds.
+            </motion.h1>
           </div>
-        </div>
+
+          {/* Refined Description */}
+          <div style={{ overflow: 'hidden' }}>
+            <motion.p variants={itemVariants} className="hero-luxury__desc hero-luxury__desc--light">
+              No sewing required. Create a strong, invisible, and machine-washable bond at home. 
+              The professional alternative to needle and thread.
+            </motion.p>
+          </div>
+
+          {/* Action Area */}
+          <motion.div variants={itemVariants} className="hero-luxury__actions">
+            <a href="/product" className="btn-luxury btn-luxury-light">
+              Order Now — Shop 50% Off
+            </a>
+            <div className="hero-luxury__trust hero-luxury__trust--light">
+              <span>🚚 Cash on Delivery</span>
+              <span className="dot">•</span>
+              <span>⚡ 3–5 Day Delivery</span>
+            </div>
+          </motion.div>
+
+        </motion.div>
       </div>
     </section>
   );

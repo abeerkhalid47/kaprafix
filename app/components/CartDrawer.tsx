@@ -12,70 +12,84 @@ export default function CartDrawer() {
         className={`cart-overlay${isOpen ? ' open' : ''}`}
         onClick={closeCart}
         aria-hidden="true"
+        style={{ backdropFilter: isOpen ? 'blur(8px)' : 'none', WebkitBackdropFilter: isOpen ? 'blur(8px)' : 'none' }}
       />
       <div
         id="cart-drawer"
-        className={`cart-drawer${isOpen ? ' open' : ''}`}
+        className={`cart-drawer-luxury${isOpen ? ' open' : ''}`}
         role="dialog"
-        aria-label="Shopping cart"
+        aria-label="Shopping bag"
         aria-modal="true"
       >
-        <div className="cart-drawer__header">
-          <span className="cart-drawer__title">Your Cart</span>
+        <div className="cart-drawer-luxury__header">
+          <span className="cart-drawer-luxury__title">Shopping Bag</span>
           <button
             id="cart-drawer-close"
-            className="cart-drawer__close"
+            className="cart-drawer-luxury__close"
             onClick={closeCart}
             aria-label="Close cart"
-          >✕</button>
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
         </div>
 
-        <div className="cart-drawer__body">
+        <div className="cart-drawer-luxury__body">
           {!cart || cart.lines.length === 0 ? (
-            <div className="cart-drawer__empty">
-              <div className="cart-drawer__empty-icon">🛍️</div>
-              <p style={{ fontWeight: 600 }}>Your cart is empty</p>
-              <p style={{ fontSize: 14 }}>Add Easy Fit Tape to get started!</p>
+            <div className="cart-drawer-luxury__empty">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.3, marginBottom: 16 }}><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+              <p style={{ fontWeight: 500, color: 'var(--text)', fontSize: 16 }}>Your bag is empty</p>
+              <p style={{ fontSize: 13, color: 'var(--text-light)', marginTop: 4 }}>Add Kaprafix tape to get started</p>
             </div>
           ) : (
             cart.lines.map((line) => (
-              <div key={line.id} className="cart-line">
+              <div key={line.id} className="cart-luxury-line">
                 {line.merchandise.product.imageUrl ? (
-                  <Image
-                    src={line.merchandise.product.imageUrl}
-                    alt={line.merchandise.product.imageAlt ?? line.merchandise.product.title}
-                    width={72}
-                    height={72}
-                    className="cart-line__img"
-                    style={{ objectFit: 'cover' }}
-                  />
+                  <div className="cart-luxury-line__img-wrap">
+                    <Image
+                      src={line.merchandise.product.imageUrl}
+                      alt={line.merchandise.product.imageAlt ?? line.merchandise.product.title}
+                      width={80}
+                      height={100}
+                      className="cart-luxury-line__img"
+                      style={{ objectFit: 'cover' }}
+                    />
+                  </div>
                 ) : (
-                  <div className="cart-line__img" style={{ background: 'var(--bg-section)' }} />
+                  <div className="cart-luxury-line__img" style={{ background: 'var(--bg-section)' }} />
                 )}
-                <div className="cart-line__info">
-                  <div className="cart-line__name">{line.merchandise.product.title}</div>
-                  <div className="cart-line__price">{formatPrice(line.merchandise.price)}</div>
-                  <div className="cart-line__qty">
-                    <button
-                      className="cart-line__qty-btn"
-                      onClick={() => updateItem(line.id, line.quantity - 1)}
-                      aria-label="Decrease quantity"
-                      disabled={isLoading}
-                    >−</button>
-                    <span style={{ fontSize: 14, fontWeight: 600 }}>{line.quantity}</span>
-                    <button
-                      className="cart-line__qty-btn"
-                      onClick={() => updateItem(line.id, line.quantity + 1)}
-                      aria-label="Increase quantity"
-                      disabled={isLoading}
-                    >+</button>
+                <div className="cart-luxury-line__info">
+                  <div className="cart-luxury-line__header">
+                    <div className="cart-luxury-line__name">{line.merchandise.product.title}</div>
                     <button
                       onClick={() => removeItem(line.id)}
-                      style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--text-light)', cursor: 'pointer', background: 'none', border: 'none' }}
+                      className="cart-luxury-line__remove"
                       disabled={isLoading}
+                      aria-label="Remove item"
                     >
-                      Remove
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
+                  </div>
+                  <div className="cart-luxury-line__price">{formatPrice(line.merchandise.price)}</div>
+                  <div className="cart-luxury-line__actions">
+                    <div className="cart-luxury-qty">
+                      <button
+                        className="cart-luxury-qty-btn"
+                        onClick={() => updateItem(line.id, line.quantity - 1)}
+                        aria-label="Decrease quantity"
+                        disabled={isLoading}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                      </button>
+                      <span className="cart-luxury-qty-val">{line.quantity}</span>
+                      <button
+                        className="cart-luxury-qty-btn"
+                        onClick={() => updateItem(line.id, line.quantity + 1)}
+                        aria-label="Increase quantity"
+                        disabled={isLoading}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -84,22 +98,23 @@ export default function CartDrawer() {
         </div>
 
         {cart && cart.lines.length > 0 && (
-          <div className="cart-drawer__footer">
-            <div className="cart-drawer__cod">
-              <span>💵</span>
-              <span>Cash on Delivery Available</span>
+          <div className="cart-drawer-luxury__footer">
+            <div className="cart-drawer-luxury__cod">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline', marginRight: 8, verticalAlign: 'middle' }}><rect width="16" height="12" x="2" y="6" rx="2"/><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M12 12h.01"/></svg>
+              <span>Cash on Delivery Pakistan</span>
             </div>
-            <div className="cart-drawer__total">
-              <span>Total</span>
+            <div className="cart-drawer-luxury__total">
+              <span>Subtotal</span>
               <span>{formatPrice(cart.totalAmount)}</span>
             </div>
             <button
               id="checkout-btn"
-              className="btn btn-primary btn-lg btn-full"
+              className="btn-luxury btn-luxury-primary btn-full-width"
               onClick={checkout}
               disabled={isLoading}
+              style={{ height: '52px' }}
             >
-              Proceed to Checkout →
+              <span>{isLoading ? 'Processing...' : 'Proceed to Checkout'}</span>
             </button>
           </div>
         )}

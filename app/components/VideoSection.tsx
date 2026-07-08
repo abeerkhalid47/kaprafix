@@ -1,36 +1,66 @@
+'use client';
+
+import { useRef } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useGSAP } from '@gsap/react';
+
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger, useGSAP);
+}
+
 export default function VideoSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const maskRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    if (!sectionRef.current || !maskRef.current || !textRef.current || !overlayRef.current) return;
+
+    ScrollTrigger.create({
+      trigger: sectionRef.current,
+      start: 'top top',
+      end: '+=150%', // Pin for 1.5x the viewport height
+      pin: true,
+      animation: gsap.timeline()
+        .to(textRef.current, { opacity: 0, y: -50, duration: 0.5 }, 0)
+        .to(maskRef.current, {
+          width: '100vw',
+          height: '100vh',
+          borderRadius: '0px',
+          marginTop: '0vh',
+          duration: 1,
+          ease: 'power2.inOut'
+        }, 0)
+        .to(overlayRef.current, { display: 'none', duration: 0.1 }, 1), // Hide overlay at the end so user can click video
+      scrub: 1,
+    });
+  }, { scope: sectionRef });
+
   return (
-    <section className="section" id="how-it-works">
-      <div className="container">
-        <div className="video-section__inner">
-          <div className="video-wrap">
-            <iframe
-              src="https://www.youtube.com/embed/2Vv-BfVoq4g?rel=0&modestbranding=1"
-              title="How to Use Hem Tape"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-          <div className="video-text">
-            <span className="label">How It Works</span>
-            <h2 className="heading mt-4">Perfect Hems in 3 Simple Steps</h2>
-            <p className="muted" style={{ marginTop: 12, lineHeight: 1.7 }}>
-              Watch how Easy Fit Tape transforms your clothing in minutes — no sewing machine, 
-              no experience, and no mess.
-            </p>
-            <ol style={{ marginTop: 20, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <li style={{ fontSize: 14, color: 'var(--text)' }}>
-                <strong>1. Place</strong> — Position the tape inside the fabric hem
-              </li>
-              <li style={{ fontSize: 14, color: 'var(--text)' }}>
-                <strong>2. Iron</strong> — Press with a warm iron for 10–15 seconds
-              </li>
-              <li style={{ fontSize: 14, color: 'var(--text)' }}>
-                <strong>3. Done</strong> — Enjoy a perfect, professional-looking hem
-              </li>
-            </ol>
-          </div>
+    <section className="video-cinematic" ref={sectionRef} id="how-it-works">
+      <div className="video-cinematic__text" ref={textRef}>
+        <span className="video-cinematic__label">How It Works</span>
+        <h2 className="video-cinematic__title">Perfect hems in 3 simple steps.</h2>
+        <div className="video-cinematic__steps">
+          <span>1. Place</span>
+          <span className="dot">•</span>
+          <span>2. Iron</span>
+          <span className="dot">•</span>
+          <span>3. Done</span>
         </div>
+      </div>
+
+      <div className="video-cinematic__mask" ref={maskRef}>
+        <iframe
+          src="https://www.youtube.com/embed/2Vv-BfVoq4g?rel=0&modestbranding=1"
+          title="How to Use Hem Tape"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className="video-cinematic__iframe"
+        />
+        <div className="video-cinematic__overlay" ref={overlayRef}></div>
       </div>
     </section>
   );

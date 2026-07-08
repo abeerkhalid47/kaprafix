@@ -1,22 +1,31 @@
 'use client';
-import Image from 'next/image';
+
 import { useState } from 'react';
+import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/context/CartContext';
 import type { ShopifyProduct } from '@/lib/shopify';
 import { formatPrice, getDiscountPercent } from '@/lib/shopify';
+import { Minus, Plus, ShoppingBag, ChevronDown } from 'lucide-react';
 
-const BENEFITS = [
-  'No Sewing Required – Hem and repair clothes without a needle or thread',
-  'Quick & Easy to Use – Professional-looking results in just minutes',
-  'Strong & Durable Hold – Keeps hems securely in place for everyday wear',
-  'Invisible Finish – Blends neatly inside the fabric for a clean appearance',
-  'Works on Multiple Fabrics – Jeans, trousers, skirts, dresses, curtains & more',
-  'Saves Time & Money – Avoid expensive tailoring for simple adjustments',
+const ACCORDIONS = [
+  {
+    title: 'How to Use',
+    content: 'Simply cut the tape to the required length, place it inside the fabric fold, and press with a warm iron for 10–15 seconds. No sewing or experience needed.'
+  },
+  {
+    title: 'Fabric Compatibility',
+    content: 'Works perfectly on most common fabrics including denim, cotton, polyester, wool, chiffon, and linen. Not recommended for very heat-sensitive or silk fabrics.'
+  },
+  {
+    title: 'Logistics & Returns',
+    content: 'Cash on Delivery is available all across Pakistan. Delivery typically takes 3–5 working days. If you are not satisfied, contact us on WhatsApp at 03177299713 and we will make it right.'
+  }
 ];
 
 export default function Hero({ product }: { product: ShopifyProduct }) {
-  const [activeImg, setActiveImg] = useState(0);
   const [qty, setQty] = useState(1);
+  const [openDrawer, setOpenDrawer] = useState<number | null>(null);
   const { addItem, isLoading } = useCart();
 
   const variant = product.variants[0];
@@ -29,117 +38,119 @@ export default function Hero({ product }: { product: ShopifyProduct }) {
     await addItem(variant.id, qty);
   }
 
+  const handleDecrease = () => setQty((prev) => Math.max(1, prev - 1));
+  const handleIncrease = () => setQty((prev) => prev + 1);
+
   return (
-    <section className="hero">
+    <section className="product-catalog-section">
       <div className="container">
-        <div className="hero__grid">
-          {/* Gallery */}
-          <div className="gallery">
-            <div className="gallery__main">
-              <Image
-                src={product.images[activeImg]?.url ?? '/images/product-1.png'}
-                alt={product.images[activeImg]?.altText ?? product.title}
-                fill
-                style={{ objectFit: 'cover' }}
-                sizes="(max-width:768px) 100vw, 50vw"
-                priority
-              />
-            </div>
-            {product.images.length > 1 && (
-              <div className="gallery__thumbs">
-                {product.images.slice(0, 4).map((img, i) => (
-                  <button
-                    key={img.id}
-                    className={`gallery__thumb${i === activeImg ? ' active' : ''}`}
-                    onClick={() => setActiveImg(i)}
-                    aria-label={`View image ${i + 1}`}
-                  >
-                    <Image
-                      src={img.url}
-                      alt={img.altText ?? `Product image ${i + 1}`}
-                      width={120}
-                      height={120}
-                      style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                    />
-                  </button>
-                ))}
+        <div className="product-catalog-grid">
+          {/* Left Column: Vertical Image Stream */}
+          <div className="product-catalog-gallery">
+            {product.images.map((img, i) => (
+              <div key={img.id || i} className="product-gallery-frame">
+                <Image
+                  src={img.url}
+                  alt={img.altText ?? `${product.title} - view ${i + 1}`}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  sizes="(max-width: 992px) 100vw, 55vw"
+                  priority={i === 0}
+                />
               </div>
-            )}
+            ))}
           </div>
 
-          {/* Product Info */}
-          <div className="product-info">
-            <h1 className="product-info__title">{product.title}</h1>
+          {/* Right Column: Pinned Product Panel */}
+          <div className="product-catalog-panel">
+            <div className="product-catalog-panel-inner">
+              <span className="product-label-badge">In Stock</span>
+              <h1 className="product-catalog-title">{product.title}</h1>
 
-            <div className="product-info__price">
-              {salePrice && <span className="price-sale">{formatPrice(salePrice)}</span>}
-              {origPrice && <span className="price-orig">{formatPrice(origPrice)}</span>}
-              {discount && <span className="badge badge-sale">{discount}% OFF</span>}
-            </div>
+              {/* Price Details */}
+              <div className="product-catalog-price-row">
+                <div className="product-catalog-prices">
+                  {salePrice && <span className="price-tag-large">{formatPrice(salePrice)}</span>}
+                  {origPrice && <span className="price-tag-orig-large">{formatPrice(origPrice)}</span>}
+                </div>
+                {discount && <span className="discount-tag">{discount}% OFF</span>}
+              </div>
 
-            <div className="product-info__badges">
-              <span className="badge badge-cod">✓ Cash on Delivery</span>
-              <span className="badge badge-trust">🔒 Secure Checkout</span>
-            </div>
+              <p className="product-catalog-desc">{product.description}</p>
 
-            <p className="product-info__desc">{product.description}</p>
+              {/* Action Box */}
+              <div className="product-checkout-panel">
+                {/* Quantity Controls */}
+                <div className="product-qty-row">
+                  <span className="qty-row-label">Quantity</span>
+                  <div className="qty-row-controls">
+                    <button 
+                      onClick={handleDecrease}
+                      className="qty-row-btn"
+                      disabled={qty <= 1}
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <span className="qty-row-val">{qty}</span>
+                    <button 
+                      onClick={handleIncrease}
+                      className="qty-row-btn"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                </div>
 
-            <ul className="benefits-list">
-              {BENEFITS.map((b, i) => (
-                <li key={i}>
-                  <span className="check">✓</span>
-                  <span>{b}</span>
-                </li>
-              ))}
-            </ul>
-
-            {/* Qty + ATC */}
-            <div className="atc-row">
-              <div className="qty-selector" role="group" aria-label="Quantity">
+                {/* ATC Button */}
                 <button
-                  id="qty-decrease"
-                  className="qty-btn"
-                  onClick={() => setQty(q => Math.max(1, q - 1))}
-                  aria-label="Decrease quantity"
-                >−</button>
-                <span className="qty-value" aria-live="polite">{qty}</span>
-                <button
-                  id="qty-increase"
-                  className="qty-btn"
-                  onClick={() => setQty(q => q + 1)}
-                  aria-label="Increase quantity"
-                >+</button>
+                  id="hero-atc-btn"
+                  className="btn-luxury btn-luxury-primary btn-full-width"
+                  onClick={handleAddToCart}
+                  disabled={isLoading || !variant?.availableForSale}
+                  style={{ height: '52px', marginTop: 8 }}
+                >
+                  <ShoppingBag size={18} style={{ marginRight: 8 }} />
+                  <span>{isLoading ? 'Adding to Bag...' : variant?.availableForSale ? 'Add to Cart' : 'Out of Stock'}</span>
+                </button>
               </div>
-              <button
-                id="hero-atc-btn"
-                className="btn btn-primary btn-lg atc-btn"
-                onClick={handleAddToCart}
-                disabled={isLoading || !variant?.availableForSale}
-              >
-                {isLoading ? 'Adding…' : variant?.availableForSale ? 'Add to Cart' : 'Out of Stock'}
-              </button>
-            </div>
 
-            {/* Trust row */}
-            <div className="trust-row">
-              <div className="trust-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M5 12l5 5L20 7"/>
-                </svg>
-                Quality Guaranteed
-              </div>
-              <div className="trust-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="1" y="3" width="15" height="13" rx="1"/>
-                  <path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="1.5"/><circle cx="18.5" cy="18.5" r="1.5"/>
-                </svg>
-                Free Delivery Over Rs. 1500
-              </div>
-              <div className="trust-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.06 6.06l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
-                </svg>
-                03177299713
+              {/* Technical Accordion Drawers */}
+              <div className="product-specs-accordions">
+                {ACCORDIONS.map((acc, i) => {
+                  const isOpen = openDrawer === i;
+                  return (
+                    <div key={i} className="spec-accordion-item">
+                      <button
+                        className="spec-accordion-header"
+                        onClick={() => setOpenDrawer(isOpen ? null : i)}
+                        aria-expanded={isOpen}
+                      >
+                        <span>{acc.title}</span>
+                        <motion.span
+                          animate={{ rotate: isOpen ? 180 : 0 }}
+                          transition={{ duration: 0.25, ease: 'easeOut' }}
+                        >
+                          <ChevronDown size={16} />
+                        </motion.span>
+                      </button>
+                      <AnimatePresence initial={false}>
+                        {isOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.25, ease: 'easeInOut' }}
+                            style={{ overflow: 'hidden' }}
+                          >
+                            <div className="spec-accordion-content">
+                              {acc.content}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
