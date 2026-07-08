@@ -33,6 +33,8 @@ export default function Hero({ product }: { product: ShopifyProduct }) {
   const origPrice = variant?.compareAtPrice;
   const discount = salePrice && origPrice ? getDiscountPercent(salePrice, origPrice) : null;
 
+  const [mainImageIndex, setMainImageIndex] = useState(0);
+
   async function handleAddToCart() {
     if (!variant) return;
     await addItem(variant.id, qty);
@@ -41,24 +43,57 @@ export default function Hero({ product }: { product: ShopifyProduct }) {
   const handleDecrease = () => setQty((prev) => Math.max(1, prev - 1));
   const handleIncrease = () => setQty((prev) => prev + 1);
 
+  const mainImage = product.images[mainImageIndex] || product.images[0];
+
   return (
     <section className="product-catalog-section">
       <div className="container">
         <div className="product-catalog-grid">
-          {/* Left Column: Vertical Image Stream */}
-          <div className="product-catalog-gallery">
-            {product.images.slice(0, 1).map((img, i) => (
-              <div key={img.id || i} className="product-gallery-frame">
-                <Image
-                  src={img.url}
-                  alt={img.altText ?? `${product.title} - view ${i + 1}`}
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  sizes="(max-width: 992px) 100vw, 55vw"
-                  priority={true}
-                />
+          {/* Left Column: Interactive Image Gallery */}
+          <div className="product-catalog-gallery-interactive">
+            <div className="product-gallery-main">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={mainImageIndex}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  style={{ position: 'absolute', inset: 0 }}
+                >
+                  <Image
+                    src={mainImage?.url || ''}
+                    alt={mainImage?.altText ?? `${product.title} - main view`}
+                    fill
+                    style={{ objectFit: 'cover', borderRadius: '16px' }}
+                    sizes="(max-width: 992px) 100vw, 55vw"
+                    priority
+                  />
+                </motion.div>
+              </AnimatePresence>
+            </div>
+            
+            {/* Thumbnails Row */}
+            {product.images.length > 1 && (
+              <div className="product-gallery-thumbnails">
+                {product.images.map((img, idx) => (
+                  <button
+                    key={img.id || idx}
+                    className={`product-gallery-thumb ${idx === mainImageIndex ? 'active' : ''}`}
+                    onClick={() => setMainImageIndex(idx)}
+                    aria-label={`View product image ${idx + 1}`}
+                  >
+                    <Image
+                      src={img.url}
+                      alt={img.altText ?? `Thumbnail ${idx + 1}`}
+                      fill
+                      style={{ objectFit: 'cover' }}
+                      sizes="100px"
+                    />
+                  </button>
+                ))}
               </div>
-            ))}
+            )}
           </div>
 
           {/* Right Column: Pinned Product Panel */}

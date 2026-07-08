@@ -197,75 +197,7 @@ export default function ProductDetailSections() {
   const whyRef    = useRef<HTMLElement>(null);
 
   useGSAP(() => {
-    let mm = gsap.matchMedia();
-
-    mm.add('(min-width: 769px)', () => {
-      // DESKTOP / TABLET LANDSCAPE — Full horizontal animations
-      gsap.from('.pds-step-card', {
-        scrollTrigger: { trigger: howRef.current, start: 'top 75%', toggleActions: 'play none none reverse' },
-        x: -48, opacity: 0, stagger: 0.15, duration: 0.7, ease: 'power3.out',
-      });
-      gsap.from('.pds-step-num', {
-        scrollTrigger: { trigger: howRef.current, start: 'top 75%', toggleActions: 'play none none reverse' },
-        scale: 0.4, opacity: 0, stagger: 0.15, duration: 0.5, ease: 'back.out(1.7)',
-      });
-      gsap.from('.pds-spec-row', {
-        scrollTrigger: { trigger: specsRef.current, start: 'top 80%', toggleActions: 'play none none reverse' },
-        x: 32, opacity: 0, stagger: 0.07, duration: 0.5, ease: 'power2.out',
-      });
-      gsap.from('.pds-specs-headline', {
-        scrollTrigger: { trigger: specsRef.current, start: 'top 85%', toggleActions: 'play none none reverse' },
-        y: 30, opacity: 0, duration: 0.7, ease: 'power3.out',
-      });
-      gsap.from('.pds-ba-before', {
-        scrollTrigger: { trigger: baRef.current, start: 'top 75%', toggleActions: 'play none none reverse' },
-        x: -60, opacity: 0, duration: 0.8, ease: 'power3.out',
-      });
-      gsap.from('.pds-ba-after', {
-        scrollTrigger: { trigger: baRef.current, start: 'top 75%', toggleActions: 'play none none reverse' },
-        x: 60, opacity: 0, duration: 0.8, ease: 'power3.out',
-      });
-    });
-
-    mm.add('(max-width: 768px)', () => {
-      // MOBILE / TABLET PORTRAIT — Y-axis only, no horizontal overflow
-      gsap.from('.pds-step-card', {
-        scrollTrigger: { trigger: howRef.current, start: 'top 85%', toggleActions: 'play none none reverse' },
-        y: 30, opacity: 0, stagger: 0.1, duration: 0.6, ease: 'power3.out',
-      });
-      gsap.from('.pds-step-num', {
-        scrollTrigger: { trigger: howRef.current, start: 'top 85%', toggleActions: 'play none none reverse' },
-        scale: 0.6, opacity: 0, stagger: 0.1, duration: 0.5, ease: 'back.out(1.5)',
-      });
-      gsap.from('.pds-spec-row', {
-        scrollTrigger: { trigger: specsRef.current, start: 'top 85%', toggleActions: 'play none none reverse' },
-        y: 20, opacity: 0, stagger: 0.05, duration: 0.5, ease: 'power2.out',
-      });
-      gsap.from('.pds-specs-headline', {
-        scrollTrigger: { trigger: specsRef.current, start: 'top 85%', toggleActions: 'play none none reverse' },
-        y: 20, opacity: 0, duration: 0.6, ease: 'power3.out',
-      });
-      gsap.from(['.pds-ba-before', '.pds-ba-after'], {
-        scrollTrigger: { trigger: baRef.current, start: 'top 85%', toggleActions: 'play none none reverse' },
-        y: 30, opacity: 0, stagger: 0.15, duration: 0.7, ease: 'power3.out',
-      });
-    });
-
-    // SHARED ANIMATIONS (Safe for both)
-    gsap.from('.pds-fabric-pill', {
-      scrollTrigger: { trigger: fabricRef.current, start: 'top 85%', toggleActions: 'play none none reverse' },
-      y: 20, opacity: 0, scale: 0.85, stagger: 0.04, duration: 0.45, ease: 'back.out(1.5)',
-    });
-
-    const whyTl = gsap.timeline({
-      scrollTrigger: { trigger: whyRef.current, start: 'top 70%', toggleActions: 'play none none reverse' },
-    });
-    whyTl
-      .from('.pds-why-badge',  { y: 20, opacity: 0, duration: 0.4 })
-      .from('.pds-why-title',  { y: 30, opacity: 0, duration: 0.5 }, '-=0.2')
-      .from('.pds-why-item',   { y: 24, opacity: 0, stagger: 0.1, duration: 0.5 }, '-=0.2');
-
-    return () => mm.revert();
+    // Animations removed as requested by the user
   });
 
   return (
