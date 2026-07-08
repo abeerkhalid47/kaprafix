@@ -53,43 +53,48 @@ export default function Reviews() {
   useGSAP(() => {
     if (!containerRef.current || !leftRef.current || !rightRef.current) return;
 
-    ScrollTrigger.create({
-      trigger: containerRef.current,
-      start: 'top top',
-      end: 'bottom bottom',
-      pin: leftRef.current,
-      id: 'reviews-pin'
-    });
+    let mm = gsap.matchMedia();
 
-    const rightItems = gsap.utils.toArray('.review-image-wrapper') as HTMLElement[];
-    const leftTextItems = gsap.utils.toArray('.review-text-item') as HTMLElement[];
-
-    const setActiveText = (index: number) => {
-      leftTextItems.forEach((textItem, i) => {
-        if (i === index) {
-          gsap.to(textItem, { autoAlpha: 1, duration: 0.4, y: 0, overwrite: true });
-        } else {
-          gsap.to(textItem, { autoAlpha: 0, duration: 0.4, y: 10, overwrite: true });
-        }
-      });
-    };
-
-    rightItems.forEach((item, index) => {
+    mm.add('(min-width: 1025px)', () => {
       ScrollTrigger.create({
-        trigger: item,
-        start: 'top center',
-        end: 'bottom center',
-        onEnter: () => setActiveText(index),
-        onEnterBack: () => setActiveText(index),
+        trigger: containerRef.current,
+        start: 'top top',
+        end: 'bottom bottom',
+        pin: leftRef.current,
+        id: 'reviews-pin'
+      });
+
+      const rightItems = gsap.utils.toArray('.review-image-wrapper') as HTMLElement[];
+      const leftTextItems = gsap.utils.toArray('.review-text-item') as HTMLElement[];
+
+      const setActiveText = (index: number) => {
+        leftTextItems.forEach((textItem, i) => {
+          if (i === index) {
+            gsap.to(textItem, { autoAlpha: 1, duration: 0.4, y: 0, overwrite: true });
+          } else {
+            gsap.to(textItem, { autoAlpha: 0, duration: 0.4, y: 10, overwrite: true });
+          }
+        });
+      };
+
+      rightItems.forEach((item, index) => {
+        ScrollTrigger.create({
+          trigger: item,
+          start: 'top center',
+          end: 'bottom center',
+          onEnter: () => setActiveText(index),
+          onEnterBack: () => setActiveText(index),
+        });
       });
     });
 
+    return () => mm.revert();
   }, { scope: containerRef });
 
   return (
     <section className="narrative-section reviews-narrative-section" ref={containerRef} id="reviews">
       <div className="narrative-container">
-        {/* Left Side: Pinned Testimonials */}
+        {/* Left Side: Pinned Testimonials (Desktop) / Stacked (Mobile) */}
         <div className="narrative-left" ref={leftRef}>
           <div className="narrative-left-content">
             <span className="narrative-label">Testimonials</span>
@@ -115,13 +120,25 @@ export default function Reviews() {
                       <div className="review-marquee-card__location">{r.location}</div>
                     </div>
                   </div>
+
+                  {/* Inline Image for Mobile Only */}
+                  <div className="narrative-mobile-img">
+                    <Image
+                      src={r.img}
+                      alt={r.label}
+                      fill
+                      style={{ objectFit: 'cover' }}
+                      sizes="(max-width: 1024px) 100vw, 50vw"
+                    />
+                    <div className="narrative-image-label">{r.label}</div>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Right Side: Scrolling Images */}
+        {/* Right Side: Scrolling Images (Desktop Only) */}
         <div className="narrative-right" ref={rightRef}>
           <div className="narrative-right-content">
             {REVIEWS_NARRATIVE.map((r, idx) => (
@@ -132,7 +149,7 @@ export default function Reviews() {
                     alt={r.label}
                     fill
                     style={{ objectFit: 'cover' }}
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
                   />
                   <div className="narrative-image-label">{r.label}</div>
                 </div>

@@ -18,24 +18,34 @@ export default function VideoSection() {
   useGSAP(() => {
     if (!sectionRef.current || !maskRef.current || !textRef.current || !overlayRef.current) return;
 
-    ScrollTrigger.create({
-      trigger: sectionRef.current,
-      start: 'top top',
-      end: '+=150%', // Pin for 1.5x the viewport height
-      pin: true,
-      animation: gsap.timeline()
-        .to(textRef.current, { opacity: 0, y: -50, duration: 0.5 }, 0)
-        .to(maskRef.current, {
-          width: '100vw',
-          height: '100vh',
-          borderRadius: '0px',
-          marginTop: '0vh',
-          duration: 1,
-          ease: 'power2.inOut'
-        }, 0)
-        .to(overlayRef.current, { display: 'none', duration: 0.1 }, 1), // Hide overlay at the end so user can click video
-      scrub: 1,
+    let mm = gsap.matchMedia();
+
+    mm.add('(min-width: 1025px)', () => {
+      ScrollTrigger.create({
+        trigger: sectionRef.current,
+        start: 'top top',
+        end: '+=150%', // Pin for 1.5x the viewport height
+        pin: true,
+        animation: gsap.timeline()
+          .to(textRef.current, { opacity: 0, y: -50, duration: 0.5 }, 0)
+          .to(maskRef.current, {
+            width: '100vw',
+            height: '100vh',
+            borderRadius: '0px',
+            marginTop: '0vh',
+            duration: 1,
+            ease: 'power2.inOut'
+          }, 0)
+          .to(overlayRef.current, { display: 'none', duration: 0.1 }, 1),
+        scrub: 1,
+      });
     });
+
+    mm.add('(max-width: 1024px)', () => {
+      gsap.set(overlayRef.current, { display: 'none' });
+    });
+
+    return () => mm.revert();
   }, { scope: sectionRef });
 
   return (
