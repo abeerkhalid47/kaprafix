@@ -47,7 +47,7 @@ export default function Hero({ product }: { product: ShopifyProduct }) {
         <div className="product-catalog-grid">
           {/* Left Column: Vertical Image Stream */}
           <div className="product-catalog-gallery">
-            {product.images.map((img, i) => (
+            {product.images.slice(0, 1).map((img, i) => (
               <div key={img.id || i} className="product-gallery-frame">
                 <Image
                   src={img.url}
@@ -55,7 +55,7 @@ export default function Hero({ product }: { product: ShopifyProduct }) {
                   fill
                   style={{ objectFit: 'cover' }}
                   sizes="(max-width: 992px) 100vw, 55vw"
-                  priority={i === 0}
+                  priority={true}
                 />
               </div>
             ))}
