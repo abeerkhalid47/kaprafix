@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import { ShoppingBag } from 'lucide-react';
@@ -31,7 +32,20 @@ export default function Navbar() {
     >
       <div className="container">
         <div className="navbar__inner">
-          <a href="/" className="navbar__logo-text" aria-label="KAPRAFIX Home">
+          {/* Left: Logo */}
+          <a href="/" className="navbar__logo" aria-label="KAPRAFIX Home" style={{ display: 'flex', alignItems: 'center', height: '40px' }}>
+            <Image 
+              src="/images/kaprafix.png" 
+              alt="KAPRAFIX Logo" 
+              width={300} 
+              height={300} 
+              className="navbar__logo-img"
+              priority
+            />
+          </a>
+
+          {/* Center: Brand Text */}
+          <a href="/" className="navbar__logo-text navbar__center-text" aria-label="KAPRAFIX Home">
             K A P R A F I X
           </a>
           <div className="navbar__actions">

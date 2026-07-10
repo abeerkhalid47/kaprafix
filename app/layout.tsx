@@ -20,6 +20,8 @@ export const metadata: Metadata = {
   },
 };
 
+import WhatsAppSticky from './components/WhatsAppSticky';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable}>
@@ -27,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <CartProvider>
           <DynamicTitle />
           {children}
+          <WhatsAppSticky />
         </CartProvider>
       </body>
     </html>

@@ -2766,7 +2766,7 @@ a.btn-luxury,
 .faq-simple-question,
 .cart-luxury-qty-btn,
 .cart-luxury-line__remove {
-  min-height: 48px !important;
+  min-height: 64px !important;
 }
 
 /* -- Fluid Typography Scale -- */
@@ -3123,3 +3123,74 @@ html, body {
     height: 100% !important;
   }
 }
+
+
+/* ---------------------------------------------------------------
+   WHATSAPP STICKY ICON
+   --------------------------------------------------------------- */
+.whatsapp-sticky {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  background-color: #25D366;
+  color: #FFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  box-shadow: 0 8px 24px rgba(37, 211, 102, 0.4);
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+.whatsapp-sticky:hover {
+  background-color: #20BA56;
+  box-shadow: 0 12px 32px rgba(37, 211, 102, 0.5);
+}
+
+
+/* ---------------------------------------------------------------
+   NAVBAR CENTER TEXT
+   --------------------------------------------------------------- */
+.navbar__center-text {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  text-decoration: none;
+}
+.navbar__logo-img {
+  object-fit: contain;
+  height: 105px;
+  width: auto;
+}
+@media (max-width: 768px) {
+  .navbar__center-text {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  text-decoration: none;
+}
+.navbar__logo-img {
+  object-fit: contain;
+  height: 105px;
+  width: auto;
+}
+}
+
+
+
+/* ---------------------------------------------------------------
+   NAVBAR MOBILE FIXES
+   --------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .navbar__center-text {
+    display: none !important;
+  }
+  .navbar__logo-img {
+    height: 64px !important;
+    width: auto !important;
+  }
+}
+

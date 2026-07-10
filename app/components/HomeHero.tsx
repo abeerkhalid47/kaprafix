@@ -21,10 +21,10 @@ const containerVariants: Variants = {
 
 const itemVariants: Variants = {
   hidden: { y: 40, opacity: 0 },
-  show: { 
-    y: 0, 
-    opacity: 1, 
-    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } 
+  show: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
   }
 };
 
@@ -86,7 +86,7 @@ export default function HomeHero({ product }: { product: ShopifyProduct }) {
       </div>
 
       <div className="container" style={{ maxWidth: '900px', position: 'relative', zIndex: 10 }}>
-        <motion.div 
+        <motion.div
           className="hero-luxury__content"
           variants={containerVariants}
           initial="hidden"
@@ -109,7 +109,7 @@ export default function HomeHero({ product }: { product: ShopifyProduct }) {
           {/* Refined Description */}
           <div style={{ overflow: 'hidden' }}>
             <motion.p variants={itemVariants} className="hero-luxury__desc hero-luxury__desc--light">
-              No sewing required. Create a strong, invisible, and machine-washable bond at home. 
+              No sewing required. Create a strong, invisible, and machine-washable bond at home.
               The professional alternative to needle and thread.
             </motion.p>
           </div>
