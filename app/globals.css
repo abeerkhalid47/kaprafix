@@ -982,12 +982,11 @@ ul {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--accent-light);
-  color: var(--accent);
+  background: rgba(181, 161, 117, 0.1);
+  color: #B5A175;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
 }
 
 .trust-badge-card__title {
@@ -1909,10 +1908,15 @@ ul {
   }
 
   .trust-badge-card__icon {
-    width: 40px;
-    height: 40px;
-    font-size: 18px;
-  }
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(181, 161, 117, 0.1);
+  color: #B5A175;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
   .trust-badge-card__title {
     font-size: 12px;
@@ -3194,3 +3198,45 @@ html, body {
   }
 }
 
+
+
+
+/* ---------------------------------------------------------------
+   PREMIUM TRUST BADGES REDESIGN
+   --------------------------------------------------------------- */
+.trust-badge-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.trust-badge-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+}
+.trust-badge-card__icon {
+  background: rgba(181, 161, 117, 0.1) !important;
+  color: #B5A175 !important;
+  border-radius: 50% !important;
+  width: 44px !important;
+  height: 44px !important;
+  flex-shrink: 0;
+}
+.trust-badge-card__title {
+  color: #111 !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  letter-spacing: -0.2px !important;
+}
+.trust-badge-card__sub {
+  color: #666 !important;
+  font-size: 13px !important;
+}
+
+@media (max-width: 480px) {
+  .trust-badge-card {
+    background: #ffffff !important;
+    border-radius: 16px !important;
+    padding: 20px !important;
+    gap: 16px !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.04) !important;
+    border: 1px solid rgba(0,0,0,0.02) !important;
+  }
+}
