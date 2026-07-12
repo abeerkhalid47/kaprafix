@@ -1,3 +1,4 @@
+import { createStorefrontApiClient } from '@shopify/storefront-api-client';
 import {
   GET_PRODUCT_QUERY,
   CREATE_CART_MUTATION,
@@ -113,6 +114,20 @@ const isMockMode =
   domain === 'your-store.myshopify.com' ||
   token === 'your_storefront_access_token_here';
 
+const client = !isMockMode
+  ? createStorefrontApiClient({
+      storeDomain: domain!,
+      apiVersion: '2026-07',
+      publicAccessToken: token!,
+      customFetchApi: (url, options) => {
+        return fetch(url, {
+          ...options,
+          next: { revalidate: 60 }, // Cache for 60 seconds
+        });
+      },
+    })
+  : null;
+
 async function shopifyFetch<T>({
   query,
   variables,
@@ -120,33 +135,24 @@ async function shopifyFetch<T>({
   query: string;
   variables?: Record<string, unknown>;
 }): Promise<T> {
-  if (isMockMode) {
+  if (isMockMode || !client) {
     throw new Error('MOCK_MODE');
   }
 
-  const endpoint = `https://${domain}/api/2024-10/graphql.json`;
+  const { data, errors } = await client.request<T>(query, { variables });
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Shopify-Storefront-Access-Token': token!,
-    },
-    body: JSON.stringify({ query, variables }),
-    next: { revalidate: 60 }, // Cache for 60 seconds
-  });
-
-  if (!response.ok) {
-    throw new Error(`Shopify API error: ${response.status}`);
+  if (errors) {
+    if (errors.graphQLErrors && errors.graphQLErrors.length > 0) {
+      throw new Error(errors.graphQLErrors[0]?.message ?? 'Shopify GraphQL error');
+    }
+    throw new Error(errors.message ?? `Shopify API error: ${errors.networkStatusCode}`);
   }
 
-  const json = await response.json();
-
-  if (json.errors) {
-    throw new Error(json.errors[0]?.message ?? 'Shopify GraphQL error');
+  if (!data) {
+    throw new Error('No data returned from Shopify');
   }
 
-  return json.data as T;
+  return data;
 }
 
 // ─── Product ─────────────────────────────────────────────────────────────────
@@ -189,7 +195,8 @@ export async function getProduct(handle?: string): Promise<ShopifyProduct> {
     }
 
     return normalizeProduct(data.product);
-  } catch {
+  } catch (error) {
+    console.error('Error fetching product from Shopify (falling back to mock):', error);
     return MOCK_PRODUCT;
   }
 }
@@ -253,7 +260,8 @@ export async function createCart(
       variables: { lines: [{ merchandiseId: variantId, quantity }] },
     });
     return normalizeCart(data.cartCreate.cart);
-  } catch {
+  } catch (error) {
+    console.error('Error in createCart:', error);
     return null;
   }
 }
@@ -271,7 +279,8 @@ export async function addToCart(
       variables: { cartId, lines: [{ merchandiseId: variantId, quantity }] },
     });
     return normalizeCart(data.cartLinesAdd.cart);
-  } catch {
+  } catch (error) {
+    console.error('Error in addToCart:', error);
     return null;
   }
 }
@@ -289,7 +298,8 @@ export async function updateCartLine(
       variables: { cartId, lines: [{ id: lineId, quantity }] },
     });
     return normalizeCart(data.cartLinesUpdate.cart);
-  } catch {
+  } catch (error) {
+    console.error('Error in updateCartLine:', error);
     return null;
   }
 }
@@ -306,7 +316,8 @@ export async function removeCartLine(
       variables: { cartId, lineIds: [lineId] },
     });
     return normalizeCart(data.cartLinesRemove.cart);
-  } catch {
+  } catch (error) {
+    console.error('Error in removeCartLine:', error);
     return null;
   }
 }

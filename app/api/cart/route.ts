@@ -32,7 +32,9 @@ export async function POST(req: NextRequest) {
 
     const isMock = !process.env.SHOPIFY_STORE_DOMAIN || 
                    !process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN || 
-                   process.env.SHOPIFY_STORE_DOMAIN === 'your-store.myshopify.com';
+                   process.env.SHOPIFY_STORE_DOMAIN === 'your-store.myshopify.com' ||
+                   (variantId && String(variantId).startsWith('mock-')) ||
+                   (lineId && String(lineId).startsWith('mock-'));
 
     if (isMock) {
       let cart = getMockCartFromCookie(req);
