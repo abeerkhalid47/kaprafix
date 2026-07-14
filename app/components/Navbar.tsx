@@ -33,7 +33,7 @@ export default function Navbar() {
       <div className="container">
         <div className="navbar__inner">
           {/* Left: Logo */}
-          <a href="/" className="navbar__logo" aria-label="KAPRAFIX Home" style={{ display: 'flex', alignItems: 'center', height: '40px' }}>
+          <a href="/" className="navbar__logo" aria-label="KAPRAFIX Home" style={{ display: 'flex', alignItems: 'center', height: '30px' }}>
             <Image 
               src="/images/kaprafix.png" 
               alt="KAPRAFIX Logo" 

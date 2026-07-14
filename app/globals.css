@@ -3166,7 +3166,7 @@ html, body {
 }
 .navbar__logo-img {
   object-fit: contain;
-  height: 105px;
+  height: 90px;
   width: auto;
 }
 @media (max-width: 768px) {
