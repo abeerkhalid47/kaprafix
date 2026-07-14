@@ -72,6 +72,13 @@ export default function VideoSection() {
         />
         <div className="video-cinematic__overlay" ref={overlayRef}></div>
       </div>
+
+      {/* Blinking Order Now button below video */}
+      <div className="video-order-now-wrapper">
+        <a href="/product" className="video-order-now-btn">
+          🛒 Order Now
+        </a>
+      </div>
     </section>
   );
 }
