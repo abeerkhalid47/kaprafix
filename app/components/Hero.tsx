@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/context/CartContext';
 import type { ShopifyProduct } from '@/lib/shopify';
-import { formatPrice, getDiscountPercent } from '@/lib/shopify';
+
 import { Minus, Plus, ShoppingBag, ChevronDown } from 'lucide-react';
 
 const ACCORDIONS = [
@@ -29,9 +29,6 @@ export default function Hero({ product }: { product: ShopifyProduct }) {
   const { addItem, isLoading } = useCart();
 
   const variant = product.variants[0];
-  const salePrice = variant?.price;
-  const origPrice = variant?.compareAtPrice;
-  const discount = salePrice && origPrice ? getDiscountPercent(salePrice, origPrice) : null;
 
   const [mainImageIndex, setMainImageIndex] = useState(0);
 
@@ -105,10 +102,10 @@ export default function Hero({ product }: { product: ShopifyProduct }) {
               {/* Price Details */}
               <div className="product-catalog-price-row">
                 <div className="product-catalog-prices">
-                  {salePrice && <span className="price-tag-large">{formatPrice(salePrice)}</span>}
-                  {origPrice && <span className="price-tag-orig-large">{formatPrice(origPrice)}</span>}
+                  <span className="price-tag-large">Rs. 999</span>
+                  <span className="price-tag-orig-large">Rs. 1,699</span>
                 </div>
-                {discount && <span className="discount-tag">{discount}% OFF</span>}
+                <span className="discount-tag">Upto 50% OFF</span>
               </div>
 
               <p className="product-catalog-desc">{product.description}</p>
