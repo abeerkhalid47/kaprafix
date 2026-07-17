@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/context/CartContext';
-import type { ShopifyProduct } from '@/lib/shopify';
+import { type ShopifyProduct, formatPrice, getDiscountPercent } from '@/lib/shopify';
 
 import { Minus, Plus, ShoppingBag, ChevronDown } from 'lucide-react';
 
@@ -28,7 +28,11 @@ export default function Hero({ product }: { product: ShopifyProduct }) {
   const [openDrawer, setOpenDrawer] = useState<number | null>(null);
   const { addItem, isLoading } = useCart();
 
-  const variant = product.variants[0];
+  const [selectedVariantId, setSelectedVariantId] = useState(
+    product.variants[0]?.id || 'mock-variant-pack-1'
+  );
+
+  const variant = product.variants.find((v) => v.id === selectedVariantId) || product.variants[0];
 
   const [mainImageIndex, setMainImageIndex] = useState(0);
 
@@ -102,13 +106,110 @@ export default function Hero({ product }: { product: ShopifyProduct }) {
               {/* Price Details */}
               <div className="product-catalog-price-row">
                 <div className="product-catalog-prices">
-                  <span className="price-tag-large">Rs. 999</span>
-                  <span className="price-tag-orig-large">Rs. 1,699</span>
+                  <span className="price-tag-large">{variant ? formatPrice(variant.price) : 'Rs. 999'}</span>
+                  {variant?.compareAtPrice && (
+                    <span className="price-tag-orig-large">{formatPrice(variant.compareAtPrice)}</span>
+                  )}
                 </div>
-                <span className="discount-tag">Upto 50% OFF</span>
+                {variant && getDiscountPercent(variant.price, variant.compareAtPrice) && (
+                  <span className="discount-tag">
+                    Save {getDiscountPercent(variant.price, variant.compareAtPrice)}%
+                  </span>
+                )}
               </div>
 
               <p className="product-catalog-desc">{product.description}</p>
+
+              {/* Bundle Selector */}
+              <div className="bundle-selector" style={{ display: 'flex', flexDirection: 'column', gap: '12px', margin: '24px 0' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Select Package & Save
+                </span>
+                {product.variants.map((v) => {
+                  const isSelected = v.id === selectedVariantId;
+                  const discount = getDiscountPercent(v.price, v.compareAtPrice);
+                  
+                  let badge = null;
+                  if (v.id === 'mock-variant-pack-3') {
+                    badge = 'Most Popular';
+                  } else if (v.id === 'mock-variant-pack-5') {
+                    badge = 'Best Value';
+                  }
+
+                  return (
+                    <button
+                      key={v.id}
+                      onClick={() => setSelectedVariantId(v.id)}
+                      className={`bundle-option-card ${isSelected ? 'selected' : ''}`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '16px',
+                        borderRadius: '12px',
+                        border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(0, 0, 0, 0.08)',
+                        background: isSelected ? 'var(--accent-light, rgba(171, 143, 101, 0.08))' : 'var(--bg-section, rgba(0, 0, 0, 0.02))',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        transition: 'all 0.25s ease',
+                        position: 'relative',
+                        boxShadow: isSelected ? '0 4px 20px rgba(171, 143, 101, 0.1)' : 'none',
+                      }}
+                    >
+                      {badge && (
+                        <span style={{
+                          position: 'absolute',
+                          top: '-10px',
+                          right: '16px',
+                          background: v.id === 'mock-variant-pack-3' ? 'var(--accent)' : '#1a202c',
+                          color: '#fff',
+                          fontSize: '9px',
+                          fontWeight: 700,
+                          padding: '2px 8px',
+                          borderRadius: '12px',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.08em',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                        }}>
+                          {badge}
+                        </span>
+                      )}
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{
+                          width: '18px',
+                          height: '18px',
+                          borderRadius: '50%',
+                          border: isSelected ? '5px solid var(--accent)' : '2px solid rgba(0,0,0,0.2)',
+                          background: '#fff',
+                          transition: 'all 0.25s ease',
+                        }} />
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: '15px', color: 'var(--text)' }}>
+                            {v.title}
+                          </div>
+                          {discount && (
+                            <div style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 500, marginTop: '2px' }}>
+                              Save {discount}%
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontWeight: 700, fontSize: '16px', color: 'var(--text)' }}>
+                          {formatPrice(v.price)}
+                        </div>
+                        {v.compareAtPrice && (
+                          <div style={{ fontSize: '13px', textDecoration: 'line-through', color: 'var(--text-light)', marginTop: '2px' }}>
+                            {formatPrice(v.compareAtPrice)}
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
 
               {/* Action Box */}
               <div className="product-checkout-panel">

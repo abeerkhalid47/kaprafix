@@ -86,17 +86,33 @@ const MOCK_PRODUCT: ShopifyProduct = {
   ],
   variants: [
     {
-      id: 'mock-variant-id',
-      title: 'Default Title',
+      id: 'mock-variant-pack-1',
+      title: '1 Pack',
       availableForSale: true,
       quantityAvailable: 99,
       price: { amount: '999.00', currencyCode: 'PKR' },
       compareAtPrice: { amount: '1999.00', currencyCode: 'PKR' },
     },
+    {
+      id: 'mock-variant-pack-3',
+      title: '3 Pack (Save 20%)',
+      availableForSale: true,
+      quantityAvailable: 99,
+      price: { amount: '2399.00', currencyCode: 'PKR' },
+      compareAtPrice: { amount: '5997.00', currencyCode: 'PKR' },
+    },
+    {
+      id: 'mock-variant-pack-5',
+      title: '5 Pack (Save 35%)',
+      availableForSale: true,
+      quantityAvailable: 99,
+      price: { amount: '3249.00', currencyCode: 'PKR' },
+      compareAtPrice: { amount: '9995.00', currencyCode: 'PKR' },
+    },
   ],
   priceRange: {
     minVariantPrice: { amount: '999.00', currencyCode: 'PKR' },
-    maxVariantPrice: { amount: '999.00', currencyCode: 'PKR' },
+    maxVariantPrice: { amount: '3249.00', currencyCode: 'PKR' },
   },
   compareAtPriceRange: {
     minVariantPrice: { amount: '1999.00', currencyCode: 'PKR' },
