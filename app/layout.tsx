@@ -11,10 +11,13 @@ export const metadata: Metadata = {
   description:
     'Easy Fit Tape is a premium iron-on fabric adhesive to shorten, repair, and adjust clothing without sewing. Strong, durable, invisible finish. COD available all over Pakistan.',
   keywords: 'hem tape pakistan, iron on tape, no stitch hem tape, fabric adhesive, clothing repair, COD pakistan',
+  icons: {
+    icon: '/images/kaprafix.png',
+  },
   openGraph: {
     title: 'Easy Fit Tape — No-Stitch Hem Tape',
     description: 'Fix, hem and repair clothes in minutes — no sewing required. COD available.',
-    images: ['/images/product-1.png'],
+    images: ['/images/kaprafix.png'],
     locale: 'en_PK',
     type: 'website',
   },

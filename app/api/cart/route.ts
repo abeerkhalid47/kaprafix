@@ -53,13 +53,25 @@ export async function POST(req: NextRequest) {
         if (existingLineIdx > -1) {
           cart.lines[existingLineIdx].quantity += quantity;
         } else {
+          let title = 'Default Title';
+          let amount = '999.00';
+          if (variantId === 'mock-variant-pack-3') {
+            title = '3 Pack (Save 20%)';
+            amount = '2399.00';
+          } else if (variantId === 'mock-variant-pack-5') {
+            title = '5 Pack (Save 35%)';
+            amount = '3249.00';
+          } else if (variantId === 'mock-variant-pack-1' || variantId === 'mock-variant-id') {
+            title = '1 Pack';
+            amount = '999.00';
+          }
           cart.lines.push({
             id: `mock-line-${Date.now()}`,
             quantity: quantity,
             merchandise: {
-              id: variantId || 'mock-variant-id',
-              title: 'Default Title',
-              price: { amount: '999.00', currencyCode: 'PKR' },
+              id: variantId || 'mock-variant-pack-1',
+              title: title,
+              price: { amount: amount, currencyCode: 'PKR' },
               product: {
                 title: 'Kaprafix — No-Stitch Hem Tape',
                 imageUrl: '/images/product-1.png',

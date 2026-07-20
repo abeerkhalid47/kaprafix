@@ -59,7 +59,14 @@ export default function CartDrawer() {
                 )}
                 <div className="cart-luxury-line__info">
                   <div className="cart-luxury-line__header">
-                    <div className="cart-luxury-line__name">{line.merchandise.product.title}</div>
+                    <div className="cart-luxury-line__name">
+                      {line.merchandise.product.title}
+                      {line.merchandise.title && line.merchandise.title !== 'Default Title' && (
+                        <span style={{ fontSize: '12px', color: 'var(--text-light)', display: 'block', fontWeight: 400, marginTop: '2px' }}>
+                          Selected Pack: {line.merchandise.title}
+                        </span>
+                      )}
+                    </div>
                     <button
                       onClick={() => removeItem(line.id)}
                       className="cart-luxury-line__remove"
