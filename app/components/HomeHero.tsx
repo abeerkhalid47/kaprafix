@@ -117,7 +117,7 @@ export default function HomeHero({ product }: { product: ShopifyProduct }) {
           {/* Action Area */}
           <motion.div variants={itemVariants} className="hero-luxury__actions">
             <a href="/product" className="btn-luxury btn-luxury-light">
-              Order Now — Shop 50% Off
+              Order Now — Shop Upto 50% Off
             </a>
             <div className="hero-luxury__trust hero-luxury__trust--light">
               <span>🚚 Cash on Delivery</span>

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 const announcements = [
   "🚚 Cash on Delivery Available All Over Pakistan",
   "⚡ Fast 3–5 Day Delivery",
-  "🔥 50% OFF - Limited Time Sale!"
+  "🔥 Upto 50% OFF - Limited Time Sale!"
 ];
 
 export default function AnnouncementBar() {
