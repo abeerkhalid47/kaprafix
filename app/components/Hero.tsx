@@ -125,14 +125,14 @@ export default function Hero({ product }: { product: ShopifyProduct }) {
                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   Select Package & Save
                 </span>
-                {product.variants.map((v) => {
+                {product.variants.map((v, idx) => {
                   const isSelected = v.id === selectedVariantId;
                   const discount = getDiscountPercent(v.price, v.compareAtPrice);
                   
                   let badge = null;
-                  if (v.id === 'mock-variant-pack-3') {
+                  if (idx === 1) {
                     badge = 'Most Popular';
-                  } else if (v.id === 'mock-variant-pack-5') {
+                  } else if (idx === 2) {
                     badge = 'Best Value';
                   }
 
@@ -161,7 +161,7 @@ export default function Hero({ product }: { product: ShopifyProduct }) {
                           position: 'absolute',
                           top: '-10px',
                           right: '16px',
-                          background: v.id === 'mock-variant-pack-3' ? 'var(--accent)' : '#1a202c',
+                          background: idx === 1 ? 'var(--accent)' : '#1a202c',
                           color: '#fff',
                           fontSize: '9px',
                           fontWeight: 700,

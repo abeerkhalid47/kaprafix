@@ -138,7 +138,7 @@ const client = !isMockMode
       customFetchApi: (url, options) => {
         return fetch(url, {
           ...options,
-          next: { revalidate: 60 }, // Cache for 60 seconds
+          next: { revalidate: 0 }, // Always fresh in dev — set to 60 in production
         });
       },
     })
