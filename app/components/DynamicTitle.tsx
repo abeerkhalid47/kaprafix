@@ -5,8 +5,7 @@ import { useEffect } from 'react';
 export default function DynamicTitle() {
   useEffect(() => {
     const titles = [
-      'Easy Fit Tape — No-Stitch Hem Tape | Cash on Delivery Pakistan',
-      'I love you',
+      'KapraFix | No Stitching Required',
     ];
     let currentIndex = 0;
 

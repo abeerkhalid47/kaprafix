@@ -24,11 +24,15 @@ export const metadata: Metadata = {
 };
 
 import WhatsAppSticky from './components/WhatsAppSticky';
+import MetaPixelScript from './components/MetaPixelScript';
+import MetaPixelTracker from './components/MetaPixelTracker';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable}>
       <body suppressHydrationWarning>
+        <MetaPixelScript />
+        <MetaPixelTracker />
         <CartProvider>
           <DynamicTitle />
           {children}
