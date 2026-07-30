@@ -7,6 +7,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
+import { trackAddToCart, trackInitiateCheckout } from '@/lib/pixel';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -92,6 +93,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           if (data.cart) {
             setCart(data.cart);
             localStorage.setItem(cartIdKey, data.cart.id);
+
+            // Track AddToCart Pixel Event
+            const addedItem = data.cart.lines.find((l: any) => l.merchandise.id === variantId);
+            const priceVal = addedItem ? parseFloat(addedItem.merchandise.price.amount) : 0;
+            trackAddToCart({
+              content_ids: [variantId],
+              content_name: addedItem?.merchandise.title || 'Product Variant',
+              value: priceVal * quantity,
+              currency: addedItem?.merchandise.price.currencyCode || 'PKR',
+              quantity,
+            });
           }
           setIsOpen(true);
         }
@@ -154,6 +166,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const checkout = useCallback(() => {
     if (cart?.checkoutUrl) {
+      // Track InitiateCheckout Pixel Event
+      const contentIds = cart.lines.map((l) => l.merchandise.id);
+      const totalVal = parseFloat(cart.totalAmount.amount) || 0;
+      const numItems = cart.lines.reduce((sum, l) => sum + l.quantity, 0);
+      
+      trackInitiateCheckout({
+        content_ids: contentIds,
+        num_items: numItems,
+        value: totalVal,
+        currency: cart.totalAmount.currencyCode || 'PKR',
+      });
+
       window.location.href = cart.checkoutUrl;
     }
   }, [cart]);
