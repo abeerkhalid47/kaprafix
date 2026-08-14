@@ -21,7 +21,6 @@ export default function TrustBadges() {
                 </div>
                 <div className="trust-badge-card__text">
                   <div className="trust-badge-card__title">{b.title}</div>
-                  <div className="trust-badge-card__sub">{b.sub}</div>
                 </div>
               </div>
             );

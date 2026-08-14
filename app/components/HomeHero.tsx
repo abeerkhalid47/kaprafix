@@ -107,12 +107,12 @@ export default function HomeHero({ product }: { product: ShopifyProduct }) {
           </div>
 
           {/* Refined Description */}
-          <div style={{ overflow: 'hidden' }}>
+          {/* <div style={{ overflow: 'hidden' }}>
             <motion.p variants={itemVariants} className="hero-luxury__desc hero-luxury__desc--light">
               No sewing required. Create a strong, invisible, and machine-washable bond at home.
               The professional alternative to needle and thread.
             </motion.p>
-          </div>
+          </div> */}
 
           {/* Action Area */}
           <motion.div variants={itemVariants} className="hero-luxury__actions">
