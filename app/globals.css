@@ -951,36 +951,40 @@ ul {
   left: 50%;
   transform: translate(-50%, -50%);
   width: 60vw;
-  aspect-ratio: 16 / 9; height: auto;
-  border-radius: 200px;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border-radius: 24px;
   overflow: hidden;
   z-index: 5;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   background: #000;
 }
 
 .video-cinematic__iframe {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  pointer-events: auto;
 }
 
 .video-cinematic__overlay {
   position: absolute;
   inset: 0;
   z-index: 20;
+  pointer-events: none;
 }
 
 /* ── Video Section Order Now Button ──────────────────────────── */
 .video-order-now-wrapper {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   justify-content: center;
-  margin-top: 36px;
-  position: relative;
   z-index: 30;
 }
 
@@ -1007,15 +1011,6 @@ ul {
 .video-order-now-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
-}
-
-@media (max-width: 768px) {
-  .video-cinematic__mask {
-    width: 90vw;
-    height: 30vh;
-    border-radius: 100px;
-    margin-top: 10vh;
-  }
 }
 
 /* ── Trust Badges Section ─────────────────────────────────────── */
@@ -3181,6 +3176,15 @@ html, body {
     transform: none !important;
     width: 100% !important;
     height: 100% !important;
+    pointer-events: auto !important;
+  }
+  .video-order-now-wrapper {
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+    transform: none !important;
+    margin-top: 8px !important;
+    z-index: 30 !important;
   }
 }
 
