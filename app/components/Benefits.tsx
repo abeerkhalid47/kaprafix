@@ -14,17 +14,17 @@ const NARRATIVE_STEPS = [
   {
     title: 'No sewing required.',
     desc: 'Hem and repair clothes without any needle, thread, or sewing machine. Perfect for anyone who wants professional results instantly.',
-    img: '/images/tape_bg_2.png',
+    img: '/KapraFix/eng-1.png',
   },
   {
     title: 'An invisible finish.',
     desc: 'The adhesive melts and blends seamlessly inside the fabric, leaving a clean, flawless appearance that looks tailored.',
-    img: '/images/tape_bg_1.png',
+    img: '/KapraFix/eng-3.png',
   },
   {
     title: 'Wash-resistant hold.',
     desc: 'Engineered to withstand the toughest washing machines. The powerful bond holds securely through everyday wear and regular cleaning.',
-    img: '/images/tape_bg_3.png',
+    img: '/KapraFix/eng-2.jpg',
   },
 ];
 

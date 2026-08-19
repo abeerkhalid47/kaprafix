@@ -64,7 +64,7 @@ export default function VideoSection() {
 
       <div className="video-cinematic__mask" ref={maskRef}>
         <iframe
-          src="https://www.youtube.com/embed/2Vv-BfVoq4g?rel=0&modestbranding=1"
+          src="https://www.youtube.com/embed/i0ZO2hfgU9A"
           title="How to Use Hem Tape"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
