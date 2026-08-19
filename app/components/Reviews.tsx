@@ -255,20 +255,6 @@ export default function Reviews() {
             </button>
           </div>
         )}
-
-        {/* CTA at the bottom */}
-        {!loading && (
-          <div className="reviews-cta">
-            <p className="reviews-cta__text">Had a great experience?</p>
-            <button
-              id="write-review-cta-btn"
-              className="reviews-write-btn reviews-write-btn--large"
-              onClick={() => setShowForm(true)}
-            >
-              Share Your Story
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Review Form Modal */}
