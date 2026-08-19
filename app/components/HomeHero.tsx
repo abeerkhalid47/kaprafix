@@ -6,9 +6,9 @@ import type { ShopifyProduct } from '@/lib/shopify';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 
 const TAPE_IMAGES = [
-  '/images/tape_bg_1.png',
-  '/images/tape_bg_2.png',
-  '/images/tape_bg_3.png',
+  '/KapraFix/hero-1.jpg',
+  '/KapraFix/hero-2.jpg',
+  '/KapraFix/hero-3.jpg',
 ];
 
 const containerVariants: Variants = {
