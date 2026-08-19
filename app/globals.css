@@ -684,11 +684,7 @@ ul {
   opacity: 0.5;
 }
 
-@media (max-width: 768px) {
-  .hero-luxury {
-    padding: 80px 0 60px;
-  }
-}
+
 
 /* ── Narrative Section (Benefits) ────────────────────────────── */
 .narrative-section {
@@ -832,7 +828,7 @@ ul {
 
 /* ── Simple FAQ Section ──────────────────────────────────────── */
 .faq-simple-section {
-  padding: 100px 0;
+  padding: 48px 0 80px;
   background: var(--bg-body);
 }
 
@@ -1802,31 +1798,33 @@ ul {
    ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
   .hero-luxury {
-    padding: 100px 0 80px;
-    min-height: 100svh;
+    padding: 60px 0 40px;
+    min-height: 60svh;
   }
 
   .hero-luxury__title {
-    font-size: clamp(32px, 8vw, 52px);
+    font-size: clamp(30px, 7.5vw, 48px);
     letter-spacing: -0.02em;
+    margin-bottom: 18px;
   }
 
   .hero-luxury__desc {
     font-size: 15px;
     max-width: 90%;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
   }
 
   .hero-luxury__actions {
     width: 100%;
     padding: 0 20px;
+    gap: 12px;
   }
 
   .btn-luxury {
-    padding: 15px 32px;
+    padding: 14px 28px;
     font-size: 15px;
     width: 100%;
-    max-width: 340px;
+    max-width: 320px;
   }
 
   .hero-luxury__trust {
@@ -1838,13 +1836,19 @@ ul {
 }
 
 @media (max-width: 480px) {
+  .hero-luxury {
+    padding: 48px 0 32px;
+    min-height: 55svh;
+  }
+
   .hero-luxury__label {
     font-size: 11px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
 
   .hero-luxury__title {
-    font-size: clamp(28px, 9vw, 42px);
+    font-size: clamp(26px, 8.5vw, 36px);
+    margin-bottom: 16px;
   }
 }
 
@@ -2041,7 +2045,7 @@ ul {
    ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
   .faq-simple-section {
-    padding: 64px 0;
+    padding: 36px 0 60px;
   }
 
   .faq-simple-question {
@@ -3337,7 +3341,7 @@ html, body {
 /* ── Section wrapper ─────────────────────────────────────────────── */
 .reviews-section {
   background: #FAFAF8;
-  padding: 100px 0 80px;
+  padding: 80px 0 32px;
   position: relative;
   overflow: hidden;
 }
@@ -3742,7 +3746,7 @@ html, body {
   }
 
   .reviews-section {
-    padding: 72px 0 60px;
+    padding: 56px 0 24px;
   }
 }
 
