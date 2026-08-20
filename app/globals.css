@@ -1754,9 +1754,7 @@ ul {
 
 /* ── Mobile padding for sticky bar ───────────────────────────── */
 @media (max-width: 768px) {
-  body {
-    padding-bottom: 80px;
-  }
+ 
 }
 
 /* ═══════════════════════════════════════════════════════════════

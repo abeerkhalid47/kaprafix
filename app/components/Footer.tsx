@@ -46,7 +46,7 @@ export default function Footer() {
           </div>
 
           {/* Logistics & Policies Column */}
-          <div className="footer-luxury__col">
+          {/* <div className="footer-luxury__col">
             <h4 className="footer-luxury__title">Policies & Shipping</h4>
             <div className="faq-visual-steps-grid" style={{ gap: 8, maxWidth: '100%' }}>
               <div style={{ padding: '8px 12px', fontSize: '13px', background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.03)', borderRadius: '8px', color: 'var(--text-muted)' }}>
@@ -59,7 +59,7 @@ export default function Footer() {
               <a href="#" className="footer-luxury__link-policy">Shipping Policy</a>
               <a href="#" className="footer-luxury__link-policy">Return Policy</a>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Bottom Credits */}
