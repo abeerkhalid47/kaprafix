@@ -39,7 +39,7 @@ export default function FinalCTA({ product, isProductPage = true }: FinalCTAProp
             </a>
           )
         )}
-        <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center', gap: 24, flexWrap: 'wrap' }}>
+        <div className="final-cta__badges" style={{ marginTop: 24, display: 'flex', justifyContent: 'center', gap: 24, flexWrap: 'wrap' }}>
           <span style={{ color: 'rgba(255,255,255,.6)', fontSize: 13 }}>✓ Cash on Delivery</span>
           <span style={{ color: 'rgba(255,255,255,.6)', fontSize: 13 }}>✓ 3–5 Day Delivery</span>
           <span style={{ color: 'rgba(255,255,255,.6)', fontSize: 13 }}>✓ Quality Guaranteed</span>

@@ -19,7 +19,7 @@ export default function FAQ() {
   return (
     <section className="faq-simple-section" id="faq">
       <div className="container" style={{ maxWidth: 800 }}>
-        <div className="section-header" style={{ marginBottom: 36 }}>
+        <div className="section-header">
           <span className="label">FAQ</span>
           <h2 className="heading mt-4">Frequently Asked Questions</h2>
         </div>
