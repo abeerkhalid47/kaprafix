@@ -145,8 +145,8 @@ const BEFORE_AFTER = [
     title: 'Uneven, falling hem',
     desc: 'Fraying edges, crooked hemlines, expensive tailor visits just to fix a simple fold.',
     icon: icons.warning,
-    bg: '#fff4f0',
-    accent: '#c05000',
+    bg: '#b5a1751a',
+    accent: '#b5a175',
   },
   {
     label: 'After',
@@ -202,6 +202,27 @@ export default function ProductDetailSections() {
 
   return (
     <>
+    <section className="pds-section pds-why-section" ref={whyRef} id="why-kaprafix">
+        <div className="container">
+          <div className="pds-why-inner">
+            <div className="pds-why-left">
+              <span className="pds-eyebrow pds-why-badge">Why us</span>
+              <h2 className="pds-section-title pds-why-title">Why choose KapraFix?</h2>
+            </div>
+            <div className="pds-why-right">
+              {WHY_ITEMS.map((item, i) => (
+                <div key={i} className="pds-why-item">
+                  <span className="pds-why-icon">{item.icon}</span>
+                  <div>
+                    <h4 className="pds-why-item-title">{item.title}</h4>
+                    <p className="pds-why-item-desc">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
       {/* ══ SECTION 1 — HOW TO USE ══ */}
       <section className="pds-section pds-how" ref={howRef} id="how-to-use">
         <div className="container">
@@ -218,7 +239,7 @@ export default function ProductDetailSections() {
                   <span className="pds-step-icon-wrap">{s.icon}</span>
                 </div>
                 <h3 className="pds-step-title">{s.title}</h3>
-                <p className="pds-step-desc">{s.desc}</p>
+                {/* <p className="pds-step-desc">{s.desc}</p> */}
               </div>
             ))}
           </div>
@@ -329,27 +350,7 @@ export default function ProductDetailSections() {
       </section>
 
       {/* ══ SECTION 5 — WHY KAPRAFIX ══ */}
-      <section className="pds-section pds-why-section" ref={whyRef} id="why-kaprafix">
-        <div className="container">
-          <div className="pds-why-inner">
-            <div className="pds-why-left">
-              <span className="pds-eyebrow pds-why-badge">Why us</span>
-              <h2 className="pds-section-title pds-why-title">Why choose KapraFix?</h2>
-            </div>
-            <div className="pds-why-right">
-              {WHY_ITEMS.map((item, i) => (
-                <div key={i} className="pds-why-item">
-                  <span className="pds-why-icon">{item.icon}</span>
-                  <div>
-                    <h4 className="pds-why-item-title">{item.title}</h4>
-                    <p className="pds-why-item-desc">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      
     </>
   );
 }
