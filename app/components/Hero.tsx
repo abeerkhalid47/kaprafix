@@ -11,15 +11,15 @@ import { Minus, Plus, ShoppingBag, ChevronDown } from 'lucide-react';
 const ACCORDIONS = [
   {
     title: 'How to Use',
-    content: 'Simply cut the tape to the required length, place it inside the fabric fold, and press with a warm iron for 10–15 seconds. No sewing or experience needed.'
+    content: 'Simply cut the tape to the required length, place it inside the fabric fold, and press with a warm iron for 10-15 seconds. No sewing or experience needed.'
   },
   {
-    title: 'Fabric Compatibility',
-    content: 'Works perfectly on most common fabrics including denim, cotton, polyester, wool, chiffon, and linen. Not recommended for very heat-sensitive or silk fabrics.'
+    title: 'Shipping Policy',
+    content: 'Cash on delivery is available all across Pakistan in 2-3 working days. Once your order is confirmed, we’ll process and dispatch it promptly. You’ll receive your order through our trusted delivery partners'
   },
   {
-    title: 'Logistics & Returns',
-    content: 'Cash on Delivery is available all across Pakistan. Delivery typically takes 3–5 working days. If you are not satisfied, contact us on WhatsApp at 03177299713 and we will make it right.'
+    title: 'Easy Returns & Refunds',
+    content: "Not satisfied with your order? No worries! you can get your money back . You can contact us for a return request and our team will guide you through the process. 📱 For returns & refunds: Chat with us on 0317-7299713."
   }
 ];
 

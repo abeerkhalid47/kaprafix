@@ -11,41 +11,36 @@ if (typeof window !== 'undefined') {
 
 export default function VideoSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const maskRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const maskRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    if (!sectionRef.current || !maskRef.current || !textRef.current || !overlayRef.current) return;
+    if (!sectionRef.current || !textRef.current || !maskRef.current) return;
 
-    let mm = gsap.matchMedia();
-
-    mm.add('(min-width: 1025px)', () => {
-      ScrollTrigger.create({
-        trigger: sectionRef.current,
-        start: 'top top',
-        end: '+=150%', // Pin for 1.5x the viewport height
-        pin: true,
-        animation: gsap.timeline()
-          .to(textRef.current, { opacity: 0, y: -50, duration: 0.5 }, 0)
-          .to(maskRef.current, {
-            width: '100vw',
-            height: '100vh',
-            borderRadius: '0px',
-            marginTop: '0vh',
-            duration: 1,
-            ease: 'power2.inOut'
-          }, 0)
-          .to(overlayRef.current, { display: 'none', duration: 0.1 }, 1),
-        scrub: 1,
-      });
+    gsap.from(textRef.current.children, {
+      y: 24,
+      opacity: 0,
+      duration: 0.7,
+      stagger: 0.1,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: textRef.current,
+        start: 'top 85%',
+        once: true,
+      },
     });
 
-    mm.add('(max-width: 1024px)', () => {
-      gsap.set(overlayRef.current, { display: 'none' });
+    gsap.from(maskRef.current, {
+      y: 32,
+      opacity: 0,
+      duration: 0.8,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: maskRef.current,
+        start: 'top 85%',
+        once: true,
+      },
     });
-
-    return () => mm.revert();
   }, { scope: sectionRef });
 
   return (
@@ -70,7 +65,6 @@ export default function VideoSection() {
           allowFullScreen
           className="video-cinematic__iframe"
         />
-        <div className="video-cinematic__overlay" ref={overlayRef}></div>
       </div>
 
       {/* Blinking Order Now button below video */}

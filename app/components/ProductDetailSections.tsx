@@ -160,25 +160,13 @@ const BEFORE_AFTER = [
 
 const SPECS = [
   { label: 'Width', value: '2.5 cm' },
-  { label: 'Roll Length', value: '10 metres' },
+  { label: 'Roll Length', value: '80 metres' },
   { label: 'Heat Required', value: 'Medium iron (130–150°C)' },
   { label: 'Bond Type', value: 'Permanent fusible adhesive' },
   { label: 'Wash Safe', value: 'Yes — machine wash cold' },
-  { label: 'Works On', value: 'Denim · Cotton · Polyester · Wool · Chiffon · Linen' },
-  { label: 'Does Not Work On', value: 'Heat-sensitive synthetics · Silk · Sheer fabrics' },
-  { label: 'Includes', value: '1× 10m KapraFix Hem Tape Roll' },
+  { label: 'Works On', value: 'Compatible for all types of fabrics.' },
 ];
 
-const FABRICS = [
-  { name: 'Denim', works: true },
-  { name: 'Cotton', works: true },
-  { name: 'Polyester', works: true },
-  { name: 'Wool', works: true },
-  { name: 'Chiffon', works: true },
-  { name: 'Linen', works: true },
-  { name: 'Silk', works: false },
-  { name: 'Sheer', works: false },
-];
 
 const WHY_ITEMS = [
   { icon: icons.bolt,      title: 'Done in 5 Minutes',       desc: 'No waiting. No tailor appointment. Fix any hem while you get ready.' },
@@ -285,7 +273,7 @@ export default function ProductDetailSections() {
       </section>
 
       {/* ══ SECTION 3 — FABRIC COMPATIBILITY ══ */}
-      <section className="pds-section pds-fabric-section" ref={fabricRef} id="fabric-compatibility">
+      {/* <section className="pds-section pds-fabric-section" ref={fabricRef} id="fabric-compatibility">
         <div className="container">
           <div className="pds-section-header">
             <span className="pds-eyebrow">Compatibility</span>
@@ -318,7 +306,7 @@ export default function ProductDetailSections() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* ══ SECTION 4 — TECHNICAL SPECS ══ */}
       <section className="pds-section pds-specs-section" ref={specsRef} id="specs">
