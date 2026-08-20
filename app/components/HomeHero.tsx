@@ -51,7 +51,7 @@ export default function HomeHero({ product }: { product: ShopifyProduct }) {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % TAPE_IMAGES.length);
-    }, 5000);
+    }, 3000);
     return () => clearInterval(timer);
   }, []);
 
