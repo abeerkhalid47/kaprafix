@@ -38,9 +38,9 @@ export default function Footer() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
                 <span>WhatsApp Support</span>
               </a>
-              <a href="mailto:support@easyfittape.pk" className="footer-luxury__link">
+              <a href="mailto:kaprafix@gmail.com" className="footer-luxury__link">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                <span>support@easyfittape.pk</span>
+                <span>kaprafix@gmail.com</span>
               </a>
             </div>
           </div>
@@ -58,7 +58,6 @@ export default function Footer() {
               <a href="#faq" className="footer-luxury__link-policy">FAQ</a>
               <a href="#" className="footer-luxury__link-policy">Shipping Policy</a>
               <a href="#" className="footer-luxury__link-policy">Return Policy</a>
-              <a href="#" className="footer-luxury__link-policy">Privacy Policy</a>
             </div>
           </div>
         </div>

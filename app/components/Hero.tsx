@@ -11,7 +11,7 @@ import { Minus, Plus, ShoppingBag, ChevronDown } from 'lucide-react';
 const ACCORDIONS = [
   {
     title: 'How to Use',
-    content: 'Simply cut the tape to the required length, place it inside the fabric fold, and press with a warm iron for 10–15 seconds. No sewing or experience needed.'
+    content: 'Simply cut the tape to the required length, place it inside the fabric fold, and press with a warm iron for 10-15 seconds. No sewing or experience needed.'
   },
   {
     title: 'Fabric Compatibility',
@@ -19,7 +19,7 @@ const ACCORDIONS = [
   },
   {
     title: 'Logistics & Returns',
-    content: 'Cash on Delivery is available all across Pakistan. Delivery typically takes 3–5 working days. If you are not satisfied, contact us on WhatsApp at 03177299713 and we will make it right.'
+    content: 'Cash on delivery is available all across Pakistan in 2-3 working days .If you are not satisfied,Your parcel can be easily returned, simply chat with us on 0317-7299713 and our team will guide you through the process.'
   }
 ];
 
