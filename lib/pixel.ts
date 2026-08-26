@@ -11,6 +11,13 @@ declare global {
 
 // ─── Event Tracking Utility Functions ──────────────────────────────────────────
 
+export interface PixelContentItem {
+  id: string;
+  quantity: number;
+  item_price?: number;
+  title?: string;
+}
+
 /**
  * Track Standard PageView
  */
@@ -51,6 +58,7 @@ export const trackAddToCart = (data: {
   value?: number;
   currency?: string;
   quantity?: number;
+  contents?: PixelContentItem[];
 }) => {
   if (typeof window !== 'undefined' && window.fbq) {
     window.fbq('track', 'AddToCart', {
@@ -60,6 +68,7 @@ export const trackAddToCart = (data: {
       value: data.value,
       currency: data.currency || 'PKR',
       quantity: data.quantity || 1,
+      contents: data.contents || data.content_ids.map((id) => ({ id, quantity: data.quantity || 1, item_price: data.value })),
     });
   }
 };
@@ -69,6 +78,7 @@ export const trackAddToCart = (data: {
  */
 export const trackInitiateCheckout = (data: {
   content_ids?: string[];
+  contents?: PixelContentItem[];
   num_items?: number;
   value?: number;
   currency?: string;
@@ -76,28 +86,59 @@ export const trackInitiateCheckout = (data: {
   if (typeof window !== 'undefined' && window.fbq) {
     window.fbq('track', 'InitiateCheckout', {
       content_ids: data.content_ids || [],
+      contents: data.contents || [],
       num_items: data.num_items || 1,
       value: data.value || 0,
       currency: data.currency || 'PKR',
+      content_type: 'product',
     });
   }
 };
 
 /**
- * Track Purchase
+ * Track Add Payment Info
+ */
+export const trackAddPaymentInfo = (data: {
+  content_ids?: string[];
+  contents?: PixelContentItem[];
+  value?: number;
+  currency?: string;
+  payment_type?: string;
+}) => {
+  if (typeof window !== 'undefined' && window.fbq) {
+    window.fbq('track', 'AddPaymentInfo', {
+      content_ids: data.content_ids || [],
+      contents: data.contents || [],
+      value: data.value || 0,
+      currency: data.currency || 'PKR',
+      content_type: 'product',
+      payment_type: data.payment_type || 'Cash on Delivery',
+    });
+  }
+};
+
+/**
+ * Track Purchase (with order_id for deduplication)
  */
 export const trackPurchase = (data: {
   content_ids?: string[];
+  contents?: PixelContentItem[];
   num_items?: number;
   value: number;
   currency?: string;
+  order_id?: string;
 }) => {
   if (typeof window !== 'undefined' && window.fbq) {
     window.fbq('track', 'Purchase', {
       content_ids: data.content_ids || [],
+      contents: data.contents || [],
       num_items: data.num_items || 1,
       value: data.value,
       currency: data.currency || 'PKR',
+      content_type: 'product',
+      order_id: data.order_id,
+    }, {
+      eventID: data.order_id, // For Conversions API deduplication if used
     });
   }
 };

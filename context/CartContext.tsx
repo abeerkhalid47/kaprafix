@@ -7,11 +7,12 @@ import React, {
   useEffect,
   useState,
 } from 'react';
+import { useRouter } from 'next/navigation';
 import { trackAddToCart, trackInitiateCheckout } from '@/lib/pixel';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface CartLineItem {
+export interface CartLineItem {
   id: string;
   quantity: number;
   merchandise: {
@@ -26,14 +27,14 @@ interface CartLineItem {
   };
 }
 
-interface Cart {
+export interface Cart {
   id: string;
   checkoutUrl: string;
   lines: CartLineItem[];
   totalAmount: { amount: string; currencyCode: string };
 }
 
-interface CartContextValue {
+export interface CartContextValue {
   cart: Cart | null;
   isOpen: boolean;
   isLoading: boolean;
@@ -43,6 +44,7 @@ interface CartContextValue {
   addItem: (variantId: string, quantity: number) => Promise<void>;
   updateItem: (lineId: string, quantity: number) => Promise<void>;
   removeItem: (lineId: string) => Promise<void>;
+  clearCart: () => void;
   checkout: () => void;
 }
 
@@ -56,6 +58,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<Cart | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   // Persist cart ID in localStorage
   const cartIdKey = 'eft_cart_id';
@@ -63,9 +66,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const savedCartId = localStorage.getItem(cartIdKey);
     if (savedCartId) {
-      // Attempt to restore cart (handled server-side if needed)
-      // For now, clear stale IDs — user will create a new cart on next add
-      // In production, add a GET_CART query to restore
+      // Attempt to restore cart if needed
     }
   }, []);
 
@@ -73,6 +74,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const openCart = useCallback(() => setIsOpen(true), []);
   const closeCart = useCallback(() => setIsOpen(false), []);
+
+  const clearCart = useCallback(() => {
+    setCart(null);
+    try {
+      localStorage.removeItem(cartIdKey);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const addItem = useCallback(
     async (variantId: string, quantity: number) => {
@@ -165,22 +175,30 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
 
   const checkout = useCallback(() => {
-    if (cart?.checkoutUrl) {
+    if (cart && cart.lines.length > 0) {
       // Track InitiateCheckout Pixel Event
       const contentIds = cart.lines.map((l) => l.merchandise.id);
       const totalVal = parseFloat(cart.totalAmount.amount) || 0;
       const numItems = cart.lines.reduce((sum, l) => sum + l.quantity, 0);
-      
+      const contents = cart.lines.map((l) => ({
+        id: l.merchandise.id,
+        quantity: l.quantity,
+        item_price: parseFloat(l.merchandise.price.amount) || 0,
+        title: l.merchandise.title,
+      }));
+
       trackInitiateCheckout({
         content_ids: contentIds,
+        contents: contents,
         num_items: numItems,
         value: totalVal,
         currency: cart.totalAmount.currencyCode || 'PKR',
       });
-
-      window.location.href = cart.checkoutUrl;
     }
-  }, [cart]);
+
+    setIsOpen(false);
+    router.push('/checkout');
+  }, [cart, router]);
 
   return (
     <CartContext.Provider
@@ -194,6 +212,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         addItem,
         updateItem,
         removeItem,
+        clearCart,
         checkout,
       }}
     >
