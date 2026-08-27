@@ -9,8 +9,6 @@ declare global {
   }
 }
 
-// ─── Event Tracking Utility Functions ──────────────────────────────────────────
-
 export interface PixelContentItem {
   id: string;
   quantity: number;
@@ -18,13 +16,54 @@ export interface PixelContentItem {
   title?: string;
 }
 
+export interface PixelUserData {
+  em?: string; // Email
+  ph?: string; // Phone
+  fn?: string; // First Name
+  ln?: string; // Last Name
+  ct?: string; // City
+  st?: string; // State / Province
+  zp?: string; // Zip
+  country?: string;
+}
+
+/**
+ * Safe caller for window.fbq
+ */
+function safeFbq(...args: any[]) {
+  if (typeof window === 'undefined') return;
+
+  if (window.fbq) {
+    try {
+      window.fbq(...args);
+    } catch (e) {
+      console.warn('[Meta Pixel] Error calling fbq:', e);
+    }
+  } else {
+    // If fbq is not loaded yet, queue it safely
+    window._fbq = window._fbq || [];
+    window.fbq = function (...callArgs: any[]) {
+      if (window.fbq.callMethod) {
+        window.fbq.callMethod.apply(window.fbq, callArgs);
+      } else {
+        window.fbq.queue.push(callArgs);
+      }
+    };
+    window.fbq.push = window.fbq;
+    window.fbq.loaded = true;
+    window.fbq.version = '2.0';
+    window.fbq.queue = window.fbq.queue || [];
+    window.fbq.queue.push(args);
+  }
+}
+
+// ─── Event Tracking Utility Functions ──────────────────────────────────────────
+
 /**
  * Track Standard PageView
  */
 export const trackPageView = () => {
-  if (typeof window !== 'undefined' && window.fbq) {
-    window.fbq('track', 'PageView');
-  }
+  safeFbq('track', 'PageView');
 };
 
 /**
@@ -37,15 +76,13 @@ export const trackProductView = (data: {
   value?: number;
   currency?: string;
 }) => {
-  if (typeof window !== 'undefined' && window.fbq) {
-    window.fbq('track', 'ViewContent', {
-      content_ids: data.content_ids,
-      content_name: data.content_name,
-      content_type: data.content_type || 'product',
-      value: data.value,
-      currency: data.currency || 'PKR',
-    });
-  }
+  safeFbq('track', 'ViewContent', {
+    content_ids: data.content_ids,
+    content_name: data.content_name,
+    content_type: data.content_type || 'product',
+    value: data.value,
+    currency: data.currency || 'PKR',
+  });
 };
 
 /**
@@ -60,17 +97,19 @@ export const trackAddToCart = (data: {
   quantity?: number;
   contents?: PixelContentItem[];
 }) => {
-  if (typeof window !== 'undefined' && window.fbq) {
-    window.fbq('track', 'AddToCart', {
-      content_ids: data.content_ids,
-      content_name: data.content_name,
-      content_type: data.content_type || 'product',
-      value: data.value,
-      currency: data.currency || 'PKR',
+  safeFbq('track', 'AddToCart', {
+    content_ids: data.content_ids,
+    content_name: data.content_name,
+    content_type: data.content_type || 'product',
+    value: data.value,
+    currency: data.currency || 'PKR',
+    quantity: data.quantity || 1,
+    contents: data.contents || data.content_ids.map((id) => ({
+      id,
       quantity: data.quantity || 1,
-      contents: data.contents || data.content_ids.map((id) => ({ id, quantity: data.quantity || 1, item_price: data.value })),
-    });
-  }
+      item_price: data.value,
+    })),
+  });
 };
 
 /**
@@ -82,17 +121,26 @@ export const trackInitiateCheckout = (data: {
   num_items?: number;
   value?: number;
   currency?: string;
+  event_id?: string;
 }) => {
-  if (typeof window !== 'undefined' && window.fbq) {
-    window.fbq('track', 'InitiateCheckout', {
+  const eventOptions: Record<string, any> = {};
+  if (data.event_id) {
+    eventOptions.eventID = data.event_id;
+  }
+
+  safeFbq(
+    'track',
+    'InitiateCheckout',
+    {
       content_ids: data.content_ids || [],
       contents: data.contents || [],
       num_items: data.num_items || 1,
       value: data.value || 0,
       currency: data.currency || 'PKR',
       content_type: 'product',
-    });
-  }
+    },
+    eventOptions
+  );
 };
 
 /**
@@ -104,17 +152,27 @@ export const trackAddPaymentInfo = (data: {
   value?: number;
   currency?: string;
   payment_type?: string;
+  event_id?: string;
+  userData?: PixelUserData;
 }) => {
-  if (typeof window !== 'undefined' && window.fbq) {
-    window.fbq('track', 'AddPaymentInfo', {
+  const eventOptions: Record<string, any> = {};
+  if (data.event_id) {
+    eventOptions.eventID = data.event_id;
+  }
+
+  safeFbq(
+    'track',
+    'AddPaymentInfo',
+    {
       content_ids: data.content_ids || [],
       contents: data.contents || [],
       value: data.value || 0,
       currency: data.currency || 'PKR',
       content_type: 'product',
       payment_type: data.payment_type || 'Cash on Delivery',
-    });
-  }
+    },
+    eventOptions
+  );
 };
 
 /**
@@ -127,18 +185,24 @@ export const trackPurchase = (data: {
   value: number;
   currency?: string;
   order_id?: string;
+  userData?: PixelUserData;
 }) => {
-  if (typeof window !== 'undefined' && window.fbq) {
-    window.fbq('track', 'Purchase', {
+  const orderIdentifier = data.order_id || `order_${Date.now()}`;
+
+  safeFbq(
+    'track',
+    'Purchase',
+    {
       content_ids: data.content_ids || [],
       contents: data.contents || [],
       num_items: data.num_items || 1,
       value: data.value,
       currency: data.currency || 'PKR',
       content_type: 'product',
-      order_id: data.order_id,
-    }, {
-      eventID: data.order_id, // For Conversions API deduplication if used
-    });
-  }
+      order_id: orderIdentifier,
+    },
+    {
+      eventID: orderIdentifier, // Exact match with Conversions API event_id
+    }
+  );
 };

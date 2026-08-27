@@ -126,8 +126,8 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Track AddPaymentInfo when user starts entering address details
-    if (!paymentTracked && (name === 'phone' || name === 'address')) {
+    // Track AddPaymentInfo on user interaction with checkout form
+    if (!paymentTracked) {
       setPaymentTracked(true);
       trackAddPaymentInfo({
         content_ids: checkoutItems.map((item) => item.id),
@@ -135,10 +135,19 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
           id: item.id,
           quantity: item.quantity,
           item_price: item.price,
+          title: item.title,
         })),
         value: totalAmount,
         currency: 'PKR',
         payment_type: 'Cash on Delivery',
+        userData: {
+          ph: formData.phone,
+          em: formData.email,
+          fn: formData.fullName.split(' ')[0],
+          ct: formData.city,
+          st: formData.province,
+          country: 'pk',
+        },
       });
     }
   };
@@ -167,6 +176,31 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
     if (!formData.city.trim()) {
       setFormError('Please enter your city.');
       return;
+    }
+
+    // Ensure AddPaymentInfo is tracked before order dispatch
+    if (!paymentTracked) {
+      setPaymentTracked(true);
+      trackAddPaymentInfo({
+        content_ids: checkoutItems.map((item) => item.id),
+        contents: checkoutItems.map((item) => ({
+          id: item.id,
+          quantity: item.quantity,
+          item_price: item.price,
+          title: item.title,
+        })),
+        value: totalAmount,
+        currency: 'PKR',
+        payment_type: 'Cash on Delivery',
+        userData: {
+          ph: cleanPhone,
+          em: formData.email.trim(),
+          fn: formData.fullName.trim().split(' ')[0],
+          ct: formData.city.trim(),
+          st: formData.province,
+          country: 'pk',
+        },
+      });
     }
 
     setIsSubmitting(true);

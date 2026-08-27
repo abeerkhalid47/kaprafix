@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createShopifyOrder } from '@/lib/shopifyAdmin';
+import { sendMetaCapiEvent } from '@/lib/metaCapi';
 
 export async function POST(req: NextRequest) {
   try {
@@ -62,6 +63,79 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Extract user metadata for Meta Conversions API
+    const forwardedFor = req.headers.get('x-forwarded-for');
+    const clientIpAddress = forwardedFor ? forwardedFor.split(',')[0]?.trim() : req.headers.get('x-real-ip') || '';
+    const clientUserAgent = req.headers.get('user-agent') || '';
+    const fbp = req.cookies.get('_fbp')?.value || null;
+    const fbc = req.cookies.get('_fbc')?.value || null;
+    const referer = req.headers.get('referer') || 'https://kaprafix.com/checkout';
+
+    const orderTotalNum = parseFloat(orderResult.totalPrice) || (typeof totalPrice === 'number' ? totalPrice : parseFloat(totalPrice || '0'));
+    const formattedContents = lineItems.map((item: any) => ({
+      id: String(item.variantId || item.id || 'kaprafix-tape'),
+      quantity: Number(item.quantity) || 1,
+      item_price: parseFloat(item.price?.amount || item.price || '0'),
+      title: item.title,
+    }));
+    const contentIds = lineItems.map((item: any) => String(item.variantId || item.id || 'kaprafix-tape'));
+    const totalQuantity = lineItems.reduce((acc: number, item: any) => acc + (Number(item.quantity) || 1), 0);
+
+    const userPayload = {
+      clientIpAddress,
+      clientUserAgent,
+      fbp,
+      fbc,
+      email: customer.email?.trim() || null,
+      phone: customer.phone.trim(),
+      firstName: customer.firstName.trim(),
+      lastName: customer.lastName?.trim() || null,
+      city: shippingAddress.city.trim(),
+      province: shippingAddress.province?.trim() || 'Punjab',
+      country: 'pk',
+      zip: shippingAddress.zip?.trim() || null,
+    };
+
+    // Dispatch Meta Conversions API Server Events (non-blocking)
+    const eventIdentifier = orderResult.orderNumber || orderResult.orderId;
+
+    Promise.allSettled([
+      // 1. AddPaymentInfo Server Event
+      sendMetaCapiEvent({
+        eventName: 'AddPaymentInfo',
+        eventId: `pay_${eventIdentifier}`,
+        eventSourceUrl: referer,
+        user: userPayload,
+        customData: {
+          value: orderTotalNum,
+          currency: 'PKR',
+          content_type: 'product',
+          content_ids: contentIds,
+          contents: formattedContents,
+          payment_type: 'Cash on Delivery',
+        },
+      }),
+
+      // 2. Purchase Server Event
+      sendMetaCapiEvent({
+        eventName: 'Purchase',
+        eventId: eventIdentifier, // Matches client-side eventID for deduplication
+        eventSourceUrl: referer,
+        user: userPayload,
+        customData: {
+          value: orderTotalNum,
+          currency: 'PKR',
+          content_type: 'product',
+          content_ids: contentIds,
+          contents: formattedContents,
+          num_items: totalQuantity,
+          order_id: eventIdentifier,
+        },
+      }),
+    ]).catch((err) => {
+      console.error('[Meta CAPI Dispatch Error]:', err);
+    });
 
     return NextResponse.json({
       success: true,

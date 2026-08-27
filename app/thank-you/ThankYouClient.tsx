@@ -28,24 +28,22 @@ export default function ThankYouClient() {
   const purchaseTracked = useRef(false);
 
   useEffect(() => {
-    // Read cached order details from sessionStorage if available
+    let parsedCached: any = null;
     try {
       const cached = sessionStorage.getItem('kaprafix_latest_order');
       if (cached) {
-        const parsed = JSON.parse(cached);
-        setOrderData(parsed);
+        parsedCached = JSON.parse(cached);
+        setOrderData(parsedCached);
       }
-    } catch {
-      // ignore
+    } catch (e) {
+      console.warn('[ThankYou] Could not read cached order data:', e);
     }
-  }, []);
 
-  // Track Meta Pixel Purchase event with strict deduplication
-  useEffect(() => {
-    if (!orderId && !orderNumber) return;
     if (purchaseTracked.current) return;
+    const effectiveOrderId = orderNumber || orderId;
+    if (!effectiveOrderId) return;
 
-    const dedupeKey = `kaprafix_pixel_purchased_${orderId || orderNumber}`;
+    const dedupeKey = `kaprafix_pixel_purchased_${effectiveOrderId}`;
     const alreadyTracked = typeof window !== 'undefined' && sessionStorage.getItem(dedupeKey);
 
     if (!alreadyTracked) {
@@ -56,15 +54,30 @@ export default function ThankYouClient() {
         // ignore
       }
 
-      const totalVal = parseFloat(totalValueParam) || (orderData?.totalPrice ? parseFloat(orderData.totalPrice) : 0);
-      const contentIds = orderData?.items?.map((i: any) => i.id) || ['kaprafix-tape'];
-      const contents = orderData?.items?.map((i: any) => ({
-        id: i.id,
-        quantity: i.quantity,
-        item_price: i.price,
-        title: i.title,
-      })) || [];
-      const numItems = orderData?.items?.reduce((s: number, i: any) => s + (i.quantity || 1), 0) || 1;
+      const totalVal =
+        parseFloat(totalValueParam) ||
+        (parsedCached?.totalPrice ? parseFloat(parsedCached.totalPrice) : 0) ||
+        1199;
+
+      const itemsList = parsedCached?.items || [];
+      const contentIds = itemsList.length > 0 ? itemsList.map((i: any) => String(i.id)) : ['kaprafix-hem-tape'];
+      const contents =
+        itemsList.length > 0
+          ? itemsList.map((i: any) => ({
+              id: String(i.id),
+              quantity: Number(i.quantity) || 1,
+              item_price: parseFloat(i.price) || 0,
+              title: i.title,
+            }))
+          : [
+              {
+                id: 'kaprafix-hem-tape',
+                quantity: 1,
+                item_price: totalVal,
+                title: 'Kaprafix Easy Fit Tape',
+              },
+            ];
+      const numItems = itemsList.reduce((s: number, i: any) => s + (Number(i.quantity) || 1), 0) || 1;
 
       trackPurchase({
         content_ids: contentIds,
@@ -72,10 +85,18 @@ export default function ThankYouClient() {
         num_items: numItems,
         value: totalVal,
         currency: 'PKR',
-        order_id: orderNumber || orderId,
+        order_id: effectiveOrderId,
+        userData: {
+          fn: customerName !== 'Valued Customer' ? customerName : parsedCached?.customer?.name?.split(' ')[0],
+          ph: parsedCached?.customer?.phone,
+          em: parsedCached?.customer?.email,
+          ct: parsedCached?.customer?.city,
+          st: parsedCached?.customer?.province,
+          country: 'pk',
+        },
       });
     }
-  }, [orderId, orderNumber, totalValueParam, orderData]);
+  }, [orderId, orderNumber, totalValueParam, customerName]);
 
   const finalTotal = parseFloat(totalValueParam) || (orderData?.totalPrice ? parseFloat(orderData.totalPrice) : 0);
   const waMessage = encodeURIComponent(
