@@ -68,18 +68,21 @@ function extractNumericId(id: string): number | null {
 
 let cachedToken: { token: string; expiresAt: number } | null = null;
 
-async function getAdminAccessToken(domain: string): Promise<string | null> {
-  // 1. Direct Admin Access Token (shpat_...)
-  if (process.env.SHOPIFY_ADMIN_ACCESS_TOKEN && process.env.SHOPIFY_ADMIN_ACCESS_TOKEN !== 'your_admin_access_token_here') {
-    return process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
-  }
+/**
+ * Retrieves the Shopify Admin access token.
+ * Prioritizes dynamic OAuth token exchange via Client ID + Secret (auto-refreshed before 24h expiry).
+ * Falls back to static SHOPIFY_ADMIN_ACCESS_TOKEN if configured.
+ */
+export async function getAdminAccessToken(
+  domain: string,
+  forceRefresh: boolean = false
+): Promise<string | null> {
+  const clientId = process.env.SHOPIFY_CLIENT_ID?.trim();
+  const clientSecret = process.env.SHOPIFY_CLIENT_SECRET?.trim();
 
-  // 2. Client Credentials Grant using Client ID & Client Secret (shpss_...)
-  const clientId = process.env.SHOPIFY_CLIENT_ID;
-  const clientSecret = process.env.SHOPIFY_CLIENT_SECRET;
-
+  // 1. Dynamic Client Credentials Grant (Auto-refreshes every 24h)
   if (clientId && clientSecret) {
-    if (cachedToken && cachedToken.expiresAt > Date.now() + 60000) {
+    if (!forceRefresh && cachedToken && cachedToken.expiresAt > Date.now() + 120000) {
       return cachedToken.token;
     }
 
@@ -87,22 +90,26 @@ async function getAdminAccessToken(domain: string): Promise<string | null> {
       const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/$/, '');
       const tokenUrl = `https://${cleanDomain}/admin/oauth/access_token`;
 
+      console.log(`[Shopify OAuth] ${forceRefresh ? 'Force refreshing' : 'Requesting fresh'} admin access token via Client Credentials...`);
+
       const response = await fetch(tokenUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          client_id: clientId.trim(),
-          client_secret: clientSecret.trim(),
+          client_id: clientId,
+          client_secret: clientSecret,
           grant_type: 'client_credentials',
         }),
       });
 
       const data = await response.json();
       if (response.ok && data.access_token) {
+        const expiresInSeconds = Number(data.expires_in) || 86400;
         cachedToken = {
           token: data.access_token,
-          expiresAt: Date.now() + ((data.expires_in || 86400) * 1000),
+          expiresAt: Date.now() + expiresInSeconds * 1000,
         };
+        console.log(`[Shopify OAuth] Successfully fetched fresh admin token. Valid for ~${Math.round(expiresInSeconds / 3600)} hours.`);
         return data.access_token;
       } else {
         console.error('[Shopify OAuth Token Error]:', data);
@@ -110,6 +117,14 @@ async function getAdminAccessToken(domain: string): Promise<string | null> {
     } catch (err) {
       console.error('Error exchanging Shopify client credentials for token:', err);
     }
+  }
+
+  // 2. Fallback to Direct Static Admin Access Token (shpat_...) if credentials grant not configured or failed
+  if (
+    process.env.SHOPIFY_ADMIN_ACCESS_TOKEN &&
+    process.env.SHOPIFY_ADMIN_ACCESS_TOKEN !== 'your_admin_access_token_here'
+  ) {
+    return process.env.SHOPIFY_ADMIN_ACCESS_TOKEN.trim();
   }
 
   return null;
@@ -253,16 +268,35 @@ export async function createShopifyOrder(
     const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/$/, '');
     const endpoint = `https://${cleanDomain}/admin/api/${apiVersion}/orders.json`;
 
-    const response = await fetch(endpoint, {
+    let activeToken = adminToken;
+    let response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': adminToken,
+        'X-Shopify-Access-Token': activeToken,
       },
       body: JSON.stringify(orderPayload),
     });
 
-    const responseData = await response.json();
+    let responseData = await response.json();
+
+    // If token expired or rejected (401 Unauthorized / Invalid API Key), force refresh token and retry once
+    if (response.status === 401 || (responseData?.errors && typeof responseData.errors === 'string' && responseData.errors.toLowerCase().includes('invalid api key'))) {
+      console.warn('[Shopify Admin API] Access token expired or invalid (401). Invalidating cache and requesting fresh token for retry...');
+      const refreshedToken = await getAdminAccessToken(domain, true);
+      if (refreshedToken && refreshedToken !== activeToken) {
+        activeToken = refreshedToken;
+        response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Shopify-Access-Token': activeToken,
+          },
+          body: JSON.stringify(orderPayload),
+        });
+        responseData = await response.json();
+      }
+    }
 
     if (!response.ok || !responseData.order) {
       const errorMsg =
