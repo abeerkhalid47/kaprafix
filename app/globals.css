@@ -3,7 +3,7 @@
 /* ── Blink / Pulse Animation ──────────────────────────────────── */
 @keyframes blink-btn {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7), 0 6px 24px rgba(0,0,0,0.18);
+    box-shadow: 0 0 0 0 #06213D, 0 6px 24px rgba(0,0,0,0.18);
     transform: scale(1);
   }
   50% {
@@ -657,8 +657,8 @@ ul {
 }
 
 .btn-luxury-light {
-  background: #ffffff;
-  color: #000000;
+  background: #06213D;
+  color: #dbdbdb;
   animation: blink-btn 1.5s ease-in-out infinite;
 }
 
@@ -1872,7 +1872,7 @@ ul {
   }
 
   .hero-luxury__title {
-    font-size: clamp(22px, 7.5vw, 32px);
+    font-size: 30px;
     margin-bottom: 0px;
   }
 
@@ -2936,7 +2936,7 @@ button,
 /* Large Mobile (576px - 767px) */
 @media (max-width: 767px) {
   .container { padding: 0 24px; }
-  .hero-luxury__title { font-size: clamp(36px, 8vw, 48px); }
+  /* .hero-luxury__title { font-size: clamp(36px, 8vw, 48px); } */
   .pds-section-title { font-size: clamp(28px, 6vw, 36px); }
 }
 
@@ -2944,7 +2944,7 @@ button,
 @media (max-width: 575px) {
   .container { padding: 0 20px; }
   .pds-section-title { font-size: clamp(24px, 7vw, 32px); }
-  .hero-luxury__title { font-size: clamp(32px, 10vw, 42px); }
+  /* .hero-luxury__title { font-size: clamp(32px, 10vw, 42px); } */
 }
 
 /* Small Mobile (320px - 374px) */

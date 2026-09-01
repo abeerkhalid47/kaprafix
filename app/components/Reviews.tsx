@@ -232,18 +232,6 @@ export default function Reviews() {
               ‹ Prev
             </button>
 
-            <div className="pagination-numbers">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  className={`pagination-number ${p === page ? 'pagination-number--active' : ''}`}
-                  onClick={() => handlePageChange(p)}
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
-
             <button
               id="next-reviews-btn"
               className="pagination-btn"

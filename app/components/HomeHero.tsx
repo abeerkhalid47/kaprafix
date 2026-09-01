@@ -102,7 +102,7 @@ export default function HomeHero({ product }: { product: ShopifyProduct }) {
           {/* Massive Headline */}
           <div style={{ overflow: 'hidden', paddingBottom: '8px' }}>
             <motion.h1 variants={itemVariants} className="hero-luxury__title hero-luxury__title--light">
-              Fix, Hem & Repair Clothes In Seconds.
+              Fix Clothes In Seconds.
             </motion.h1>
           </div>
 
@@ -117,7 +117,7 @@ export default function HomeHero({ product }: { product: ShopifyProduct }) {
           {/* Action Area */}
           <motion.div variants={itemVariants} className="hero-luxury__actions">
             <a href="/product" className="btn-luxury btn-luxury-light">
-              Order Now — Shop Upto 50% Off
+              Order Now — Upto 50% Off
             </a>
             <div className="hero-luxury__trust hero-luxury__trust--light">
               <span>🚚 Cash on Delivery</span>

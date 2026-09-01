@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 const FAQS = [
   { q: 'Is Cash on Delivery (COD) available?', a: 'Yes! Cash on Delivery is available all across Pakistan. You only pay when you receive your order at your doorstep.' },
@@ -64,19 +64,6 @@ export default function FAQ() {
           })}
         </div>
 
-        {/* WhatsApp Link below */}
-        <div className="faq-simple-footer">
-          <p>Still have a specific query?</p>
-          <a 
-            href="https://wa.me/923177299713" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="faq-whatsapp-btn"
-          >
-            <MessageCircle size={18} />
-            <span>Chat on WhatsApp</span>
-          </a>
-        </div>
       </div>
     </section>
   );

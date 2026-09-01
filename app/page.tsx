@@ -21,8 +21,8 @@ export default async function HomePage() {
       <main>
         <HomeHero product={product} />
         <TrustBadges />
-        <Benefits />
         <VideoSection />
+        <Benefits />
         <Reviews />
         <FAQ />
         <FinalCTA product={product} isProductPage={false} />
