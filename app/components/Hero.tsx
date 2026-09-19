@@ -80,6 +80,7 @@ export default function Hero({ product }: { product: ShopifyProduct }) {
                 {product.images.map((img, idx) => (
                   <button
                     key={img.id || idx}
+                    type="button"
                     className={`product-gallery-thumb ${idx === mainImageIndex ? 'active' : ''}`}
                     onClick={() => setMainImageIndex(idx)}
                     aria-label={`View product image ${idx + 1}`}
@@ -121,8 +122,8 @@ export default function Hero({ product }: { product: ShopifyProduct }) {
               <p className="product-catalog-desc">{product.description}</p>
 
               {/* Bundle Selector */}
-              <div className="bundle-selector" style={{ display: 'flex', flexDirection: 'column', gap: '12px', margin: '24px 0' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <div className="bundle-selector">
+                <span className="bundle-selector-label">
                   Select Package & Save
                 </span>
                 {product.variants.map((v, idx) => {
@@ -139,69 +140,36 @@ export default function Hero({ product }: { product: ShopifyProduct }) {
                   return (
                     <button
                       key={v.id}
+                      type="button"
                       onClick={() => setSelectedVariantId(v.id)}
                       className={`bundle-option-card ${isSelected ? 'selected' : ''}`}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '16px',
-                        borderRadius: '12px',
-                        border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(0, 0, 0, 0.08)',
-                        background: isSelected ? 'var(--accent-light, rgba(171, 143, 101, 0.08))' : 'var(--bg-section, rgba(0, 0, 0, 0.02))',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'all 0.25s ease',
-                        position: 'relative',
-                        boxShadow: isSelected ? '0 4px 20px rgba(171, 143, 101, 0.1)' : 'none',
-                      }}
                     >
                       {badge && (
-                        <span style={{
-                          position: 'absolute',
-                          top: '-10px',
-                          right: '16px',
-                          background: idx === 1 ? 'var(--accent)' : '#1a202c',
-                          color: '#fff',
-                          fontSize: '9px',
-                          fontWeight: 700,
-                          padding: '2px 8px',
-                          borderRadius: '12px',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.08em',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-                        }}>
+                        <span className={`bundle-badge ${idx === 1 ? 'bundle-badge-popular' : 'bundle-badge-value'}`}>
                           {badge}
                         </span>
                       )}
                       
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{
-                          width: '18px',
-                          height: '18px',
-                          borderRadius: '50%',
-                          border: isSelected ? '5px solid var(--accent)' : '2px solid rgba(0,0,0,0.2)',
-                          background: '#fff',
-                          transition: 'all 0.25s ease',
-                        }} />
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: '15px', color: 'var(--text)' }}>
+                      <div className="bundle-option-left">
+                        <div className="bundle-radio-circle" />
+                        <div className="bundle-option-info">
+                          <div className="bundle-option-title">
                             {v.title}
                           </div>
                           {discount && (
-                            <div style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 500, marginTop: '2px' }}>
+                            <div className="bundle-option-discount">
                               Save {discount}%
                             </div>
                           )}
                         </div>
                       </div>
 
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontWeight: 700, fontSize: '16px', color: 'var(--text)' }}>
+                      <div className="bundle-option-right">
+                        <div className="bundle-option-price">
                           {formatPrice(v.price)}
                         </div>
                         {v.compareAtPrice && (
-                          <div style={{ fontSize: '13px', textDecoration: 'line-through', color: 'var(--text-light)', marginTop: '2px' }}>
+                          <div className="bundle-option-compare-price">
                             {formatPrice(v.compareAtPrice)}
                           </div>
                         )}
@@ -218,16 +186,20 @@ export default function Hero({ product }: { product: ShopifyProduct }) {
                   <span className="qty-row-label">Quantity</span>
                   <div className="qty-row-controls">
                     <button 
+                      type="button"
                       onClick={handleDecrease}
                       className="qty-row-btn"
                       disabled={qty <= 1}
+                      aria-label="Decrease quantity"
                     >
                       <Minus size={16} />
                     </button>
                     <span className="qty-row-val">{qty}</span>
                     <button 
+                      type="button"
                       onClick={handleIncrease}
                       className="qty-row-btn"
+                      aria-label="Increase quantity"
                     >
                       <Plus size={16} />
                     </button>
@@ -237,12 +209,12 @@ export default function Hero({ product }: { product: ShopifyProduct }) {
                 {/* ATC Button */}
                 <button
                   id="hero-atc-btn"
+                  type="button"
                   className="btn-luxury btn-luxury-primary btn-full-width"
                   onClick={handleAddToCart}
                   disabled={isLoading || !variant?.availableForSale}
-                  style={{ height: '52px', marginTop: 8 }}
                 >
-                  <ShoppingBag size={18} style={{ marginRight: 8 }} />
+                  <ShoppingBag size={18} style={{ marginRight: 8, flexShrink: 0 }} />
                   <span>{isLoading ? 'Adding to Bag...' : variant?.availableForSale ? 'Add to Cart' : 'Out of Stock'}</span>
                 </button>
               </div>

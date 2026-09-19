@@ -227,7 +227,7 @@ export default function ProductDetailSections() {
                   <span className="pds-step-icon-wrap">{s.icon}</span>
                 </div>
                 <h3 className="pds-step-title">{s.title}</h3>
-                {/* <p className="pds-step-desc">{s.desc}</p> */}
+                <p className="pds-step-desc">{s.desc}</p>
               </div>
             ))}
           </div>
