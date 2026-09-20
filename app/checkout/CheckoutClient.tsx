@@ -15,7 +15,15 @@ import {
   Lock, 
   Package, 
   ChevronRight,
-  AlertCircle
+  AlertCircle,
+  Building2,
+  Copy,
+  Check,
+  Upload,
+  X,
+  MessageSquare,
+  FileImage,
+  Sparkles
 } from 'lucide-react';
 
 const PROVINCES = [
@@ -47,6 +55,18 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
     postalCode: '',
     note: '',
   });
+
+  // Payment Method State: 'bank_transfer' (Rs. 80 delivery) or 'cod' (Rs. 200 delivery)
+  const [paymentMethod, setPaymentMethod] = useState<'bank_transfer' | 'cod'>('bank_transfer');
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  // Receipt Screenshot Upload State
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+  const [uploadedReceiptUrl, setUploadedReceiptUrl] = useState<string | null>(null);
+  const [isUploadingReceipt, setIsUploadingReceipt] = useState(false);
+  const [receiptError, setReceiptError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Direct checkout fallback variant (if cart is empty)
   const [fallbackVariantId, setFallbackVariantId] = useState<string>(
@@ -93,12 +113,12 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
     ];
   }, [hasCartItems, cart, product, fallbackVariantId, fallbackQty]);
 
-  // Subtotal & Total
+  // Subtotal & Total: Bank Transfer = Rs. 80, COD = Rs. 200
   const subtotal = useMemo(() => {
     return checkoutItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   }, [checkoutItems]);
 
-  const shippingCost = 200; // Rs. 200 Standard Delivery
+  const shippingCost = paymentMethod === 'bank_transfer' ? 80 : 200;
   const totalAmount = subtotal + shippingCost;
 
   // Fire InitiateCheckout on Mount
@@ -120,6 +140,63 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
     }
   }, [checkoutItems, totalAmount]);
 
+  const handleCopy = (text: string, fieldName: string) => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopiedField(fieldName);
+      setTimeout(() => setCopiedField(null), 2500);
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setReceiptError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setReceiptError('Screenshot file size must be under 10MB.');
+      return;
+    }
+
+    setReceiptFile(file);
+    const localUrl = URL.createObjectURL(file);
+    setReceiptPreview(localUrl);
+
+    // Automatically upload to server
+    setIsUploadingReceipt(true);
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+
+      const res = await fetch('/api/upload-receipt', {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setUploadedReceiptUrl(data.url);
+      } else {
+        throw new Error(data.error || 'Failed to upload screenshot');
+      }
+    } catch (err: any) {
+      console.warn('Screenshot upload background error:', err);
+      // Keep local preview, will retry or fallback upon order placement
+    } finally {
+      setIsUploadingReceipt(false);
+    }
+  };
+
+  const handleRemoveReceipt = () => {
+    setReceiptFile(null);
+    setReceiptPreview(null);
+    setUploadedReceiptUrl(null);
+    setReceiptError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -139,7 +216,7 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
         })),
         value: totalAmount,
         currency: 'PKR',
-        payment_type: 'Cash on Delivery',
+        payment_type: paymentMethod === 'bank_transfer' ? 'Direct Bank Transfer' : 'Cash on Delivery',
         userData: {
           ph: formData.phone,
           em: formData.email,
@@ -178,6 +255,17 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
       return;
     }
 
+    // Bank transfer proof validation
+    if (paymentMethod === 'bank_transfer') {
+      if (!receiptFile && !uploadedReceiptUrl) {
+        setFormError('Please upload a screenshot of your bank transfer receipt to complete your order.');
+        // Scroll to payment section
+        const paymentSection = document.getElementById('payment-method-card');
+        paymentSection?.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+    }
+
     // Ensure AddPaymentInfo is tracked before order dispatch
     if (!paymentTracked) {
       setPaymentTracked(true);
@@ -191,7 +279,7 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
         })),
         value: totalAmount,
         currency: 'PKR',
-        payment_type: 'Cash on Delivery',
+        payment_type: paymentMethod === 'bank_transfer' ? 'Direct Bank Transfer' : 'Cash on Delivery',
         userData: {
           ph: cleanPhone,
           em: formData.email.trim(),
@@ -210,6 +298,27 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
       const nameParts = formData.fullName.trim().split(' ');
       const firstName = nameParts[0] || 'Customer';
       const lastName = nameParts.slice(1).join(' ') || '';
+
+      // If Bank Transfer and receipt hasn't finished uploading yet, upload now
+      let finalReceiptUrl = uploadedReceiptUrl;
+      if (paymentMethod === 'bank_transfer' && !finalReceiptUrl && receiptFile) {
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', receiptFile);
+        const upRes = await fetch('/api/upload-receipt', {
+          method: 'POST',
+          body: uploadFormData,
+        });
+        const upData = await upRes.json();
+        if (upRes.ok && upData.url) {
+          finalReceiptUrl = upData.url;
+        } else {
+          throw new Error(upData.error || 'Failed to upload screenshot. Please try again.');
+        }
+      }
+
+      const defaultNote = paymentMethod === 'bank_transfer'
+        ? 'Direct Bank Transfer (Meezan Bank - Abeer Khalid)'
+        : 'Cash on Delivery (Website Order)';
 
       const payload = {
         customer: {
@@ -234,8 +343,11 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
           price: item.price.toString(),
           title: `${item.title}${item.variantTitle ? ` (${item.variantTitle})` : ''}`,
         })),
-        note: formData.note.trim() || 'Cash on Delivery (Website Order)',
+        note: formData.note.trim() ? `${formData.note.trim()} | ${defaultNote}` : defaultNote,
         totalPrice: totalAmount,
+        paymentMethod,
+        shippingFee: shippingCost,
+        receiptUrl: finalReceiptUrl,
       };
 
       const res = await fetch('/api/order', {
@@ -256,6 +368,9 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
         orderNumber: data.orderNumber,
         totalPrice: totalAmount,
         currency: 'PKR',
+        paymentMethod: paymentMethod,
+        shippingFee: shippingCost,
+        receiptUrl: finalReceiptUrl,
         customer: {
           name: formData.fullName,
           phone: formData.phone,
@@ -279,6 +394,8 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
         orderNumber: data.orderNumber,
         value: totalAmount.toString(),
         name: firstName,
+        paymentMethod: paymentMethod,
+        shipping: shippingCost.toString(),
       });
 
       router.push(`/thank-you?${searchParams.toString()}`);
@@ -359,7 +476,7 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
               justifyContent: 'center',
               fontSize: '11px',
             }}>2</span>
-            Shipping & Payment (COD)
+            Shipping & Payment
           </span>
           <ChevronRight size={14} color="var(--text-light)" />
           <span style={{ color: 'var(--text-light)' }}>3. Confirmation</span>
@@ -619,13 +736,16 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
               </div>
 
               {/* 2. Payment Method Card */}
-              <div style={{
-                background: '#fff',
-                borderRadius: '16px',
-                padding: '24px',
-                border: '1px solid var(--border)',
-                boxShadow: 'var(--shadow)',
-              }}>
+              <div 
+                id="payment-method-card"
+                style={{
+                  background: '#fff',
+                  borderRadius: '16px',
+                  padding: '24px',
+                  border: '1px solid var(--border)',
+                  boxShadow: 'var(--shadow)',
+                }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
                   <div style={{
                     width: '32px',
@@ -646,51 +766,371 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
                       Payment Method
                     </h2>
                     <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                      Pay safely at your doorstep in cash.
+                      Select how you would like to pay for your order.
                     </p>
                   </div>
                 </div>
 
-                {/* COD Card */}
-                <div style={{
-                  padding: '18px',
-                  borderRadius: '12px',
-                  border: '2px solid var(--accent)',
-                  background: 'var(--accent-light)',
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '14px',
-                }}>
-                  <div style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    border: '6px solid var(--accent)',
-                    background: '#fff',
-                    marginTop: '2px',
-                    flexShrink: 0,
-                  }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text)' }}>
-                        Cash on Delivery (COD)
-                      </span>
-                      <span style={{
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        background: 'var(--accent)',
-                        color: '#fff',
-                        padding: '2px 8px',
-                        borderRadius: '12px',
-                        textTransform: 'uppercase',
-                      }}>
-                        Recommended
-                      </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  
+                  {/* OPTION 1: Bank Transfer (Discounted Delivery Rs. 80) */}
+                  <div 
+                    onClick={() => setPaymentMethod('bank_transfer')}
+                    style={{
+                      borderRadius: '14px',
+                      border: paymentMethod === 'bank_transfer' ? '2px solid #16a34a' : '1px solid var(--border)',
+                      background: paymentMethod === 'bank_transfer' ? '#f0fdf4' : '#fafafa',
+                      padding: '16px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                      <div style={{
+                        width: '20px',
+                        height: '20px',
+                        borderRadius: '50%',
+                        border: paymentMethod === 'bank_transfer' ? '6px solid #16a34a' : '2px solid #cbd5e1',
+                        background: '#fff',
+                        marginTop: '3px',
+                        flexShrink: 0,
+                      }} />
+
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                          <span style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Building2 size={17} color="#16a34a" />
+                            Direct Bank Transfer (Advance)
+                          </span>
+                          <span style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            background: '#16a34a',
+                            color: '#fff',
+                            padding: '3px 9px',
+                            borderRadius: '20px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em',
+                          }}>
+                            <Sparkles size={11} /> Delivery Rs. 80 only (Save Rs. 120!)
+                          </span>
+                        </div>
+                        <p style={{ fontSize: '13px', color: '#475569', marginTop: '6px', lineHeight: 1.4 }}>
+                          Transfer Rs. {totalAmount.toLocaleString()} directly via any bank app, Easypaisa, JazzCash, SadaPay or NayaPay. Delivery fee is discounted from <span style={{ textDecoration: 'line-through' }}>Rs. 200</span> to <strong>Rs. 80</strong>!
+                        </p>
+                      </div>
                     </div>
-                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.4 }}>
-                      Pay with cash when your parcel is delivered to your address. Check the parcel and hand over payment to courier.
-                    </p>
+
+                    {/* Expanded Bank Account Details & Screenshot Uploader */}
+                    {paymentMethod === 'bank_transfer' && (
+                      <div 
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          marginTop: '16px',
+                          paddingTop: '16px',
+                          borderTop: '1px solid #bbf7d0',
+                        }}
+                      >
+                        {/* Bank Details Card */}
+                        <div style={{
+                          background: '#ffffff',
+                          border: '1px solid #86efac',
+                          borderRadius: '12px',
+                          padding: '16px',
+                          boxShadow: '0 2px 6px rgba(22, 163, 74, 0.08)',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', borderBottom: '1px dashed #dcfce7', paddingBottom: '8px' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 800, color: '#166534', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+                              🏦 Meezan Bank Limited
+                            </span>
+                            <span style={{ fontSize: '12px', color: '#15803d', fontWeight: 600 }}>
+                              Amount: <strong>Rs. {totalAmount.toLocaleString()}</strong>
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+                            {/* Account Title */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                              <div>
+                                <span style={{ color: '#64748b', fontSize: '11px', display: 'block', textTransform: 'uppercase', fontWeight: 600 }}>Account Title</span>
+                                <strong style={{ color: '#0f172a', fontSize: '14px' }}>ABEER KHALID</strong>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleCopy('ABEER KHALID', 'title')}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  padding: '5px 10px',
+                                  borderRadius: '6px',
+                                  border: '1px solid #cbd5e1',
+                                  background: '#fff',
+                                  fontSize: '12px',
+                                  fontWeight: 600,
+                                  color: copiedField === 'title' ? '#16a34a' : '#475569',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                {copiedField === 'title' ? <Check size={14} /> : <Copy size={14} />}
+                                {copiedField === 'title' ? 'Copied!' : 'Copy'}
+                              </button>
+                            </div>
+
+                            {/* Account Number */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                              <div>
+                                <span style={{ color: '#64748b', fontSize: '11px', display: 'block', textTransform: 'uppercase', fontWeight: 600 }}>Account Number</span>
+                                <strong style={{ color: '#0f172a', fontSize: '14px', letterSpacing: '0.03em' }}>00300115740934</strong>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleCopy('00300115740934', 'accountNumber')}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  padding: '5px 10px',
+                                  borderRadius: '6px',
+                                  border: '1px solid #cbd5e1',
+                                  background: '#fff',
+                                  fontSize: '12px',
+                                  fontWeight: 600,
+                                  color: copiedField === 'accountNumber' ? '#16a34a' : '#475569',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                {copiedField === 'accountNumber' ? <Check size={14} /> : <Copy size={14} />}
+                                {copiedField === 'accountNumber' ? 'Copied!' : 'Copy'}
+                              </button>
+                            </div>
+
+                            {/* IBAN */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                              <div>
+                                <span style={{ color: '#64748b', fontSize: '11px', display: 'block', textTransform: 'uppercase', fontWeight: 600 }}>IBAN</span>
+                                <strong style={{ color: '#0f172a', fontSize: '13px', letterSpacing: '0.02em', wordBreak: 'break-all' }}>PK68MEZN0000300115740934</strong>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleCopy('PK68MEZN0000300115740934', 'iban')}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  padding: '5px 10px',
+                                  borderRadius: '6px',
+                                  border: '1px solid #cbd5e1',
+                                  background: '#fff',
+                                  fontSize: '12px',
+                                  fontWeight: 600,
+                                  color: copiedField === 'iban' ? '#16a34a' : '#475569',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                {copiedField === 'iban' ? <Check size={14} /> : <Copy size={14} />}
+                                {copiedField === 'iban' ? 'Copied!' : 'Copy'}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Screenshot Upload Dropzone */}
+                        <div style={{ marginTop: '16px' }}>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#166534', marginBottom: '8px' }}>
+                            Upload Transfer Screenshot / Receipt <span style={{ color: '#dc2626' }}>*</span>
+                          </label>
+
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            style={{ display: 'none' }}
+                          />
+
+                          {!receiptPreview ? (
+                            <div
+                              onClick={() => fileInputRef.current?.click()}
+                              style={{
+                                border: '2px dashed #86efac',
+                                borderRadius: '12px',
+                                padding: '20px',
+                                textAlign: 'center',
+                                background: '#ffffff',
+                                cursor: 'pointer',
+                                transition: 'background 0.2s',
+                              }}
+                            >
+                              <div style={{
+                                width: '42px',
+                                height: '42px',
+                                borderRadius: '50%',
+                                background: '#dcfce7',
+                                color: '#16a34a',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginBottom: '8px',
+                              }}>
+                                <Upload size={20} style={{ margin: 'auto' }} />
+                              </div>
+                              <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                                Tap to attach payment screenshot
+                              </div>
+                              <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                                PNG, JPG, or WEBP (Max 10MB)
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{
+                              background: '#ffffff',
+                              border: '1px solid #bbf7d0',
+                              borderRadius: '12px',
+                              padding: '12px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: '12px',
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
+                                <img
+                                  src={receiptPreview}
+                                  alt="Receipt preview"
+                                  style={{
+                                    width: '56px',
+                                    height: '56px',
+                                    objectFit: 'cover',
+                                    borderRadius: '8px',
+                                    border: '1px solid #e2e8f0',
+                                    flexShrink: 0,
+                                  }}
+                                />
+                                <div style={{ minWidth: 0 }}>
+                                  <div style={{
+                                    fontSize: '13px',
+                                    fontWeight: 700,
+                                    color: '#0f172a',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                  }}>
+                                    {receiptFile?.name || 'receipt-screenshot.jpg'}
+                                  </div>
+                                  <div style={{ fontSize: '11px', marginTop: '2px' }}>
+                                    {isUploadingReceipt ? (
+                                      <span style={{ color: '#d97706', fontWeight: 600 }}>
+                                        Uploading to server...
+                                      </span>
+                                    ) : uploadedReceiptUrl ? (
+                                      <span style={{ color: '#16a34a', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                                        <Check size={12} /> Receipt verified & attached
+                                      </span>
+                                    ) : (
+                                      <span style={{ color: '#16a34a', fontWeight: 600 }}>
+                                        Ready to attach
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={handleRemoveReceipt}
+                                title="Remove screenshot"
+                                style={{
+                                  background: '#fee2e2',
+                                  border: 'none',
+                                  color: '#dc2626',
+                                  width: '32px',
+                                  height: '32px',
+                                  borderRadius: '50%',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  cursor: 'pointer',
+                                  flexShrink: 0,
+                                }}
+                              >
+                                <X size={16} />
+                              </button>
+                            </div>
+                          )}
+
+                          {receiptError && (
+                            <p style={{ color: '#dc2626', fontSize: '12px', marginTop: '6px', fontWeight: 600 }}>
+                              {receiptError}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* WhatsApp bank transfer helper */}
+                        <div style={{ marginTop: '12px', fontSize: '12px', color: '#166534', background: '#dcfce7', padding: '8px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
+                          <span>Need help sending transfer or receipt?</span>
+                          <a
+                            href={`https://wa.me/923177299713?text=${encodeURIComponent(`Assalam-o-Alaikum! I am paying via bank transfer for my Kaprafix order. Amount: Rs. ${totalAmount}`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: '#15803d', fontWeight: 700, textDecoration: 'underline', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                          >
+                            <MessageSquare size={13} /> Message on WhatsApp
+                          </a>
+                        </div>
+                      </div>
+                    )}
                   </div>
+
+                  {/* OPTION 2: Cash on Delivery (COD - Rs. 200 delivery) */}
+                  <div 
+                    onClick={() => setPaymentMethod('cod')}
+                    style={{
+                      borderRadius: '14px',
+                      border: paymentMethod === 'cod' ? '2px solid var(--accent)' : '1px solid var(--border)',
+                      background: paymentMethod === 'cod' ? 'var(--accent-light)' : '#fafafa',
+                      padding: '16px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                      <div style={{
+                        width: '20px',
+                        height: '20px',
+                        borderRadius: '50%',
+                        border: paymentMethod === 'cod' ? '6px solid var(--accent)' : '2px solid #cbd5e1',
+                        background: '#fff',
+                        marginTop: '3px',
+                        flexShrink: 0,
+                      }} />
+
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                          <span style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text)' }}>
+                            Cash on Delivery (COD)
+                          </span>
+                          <span style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            background: '#e2e8f0',
+                            color: '#475569',
+                            padding: '3px 9px',
+                            borderRadius: '20px',
+                            textTransform: 'uppercase',
+                          }}>
+                            Delivery Fee: Rs. 200
+                          </span>
+                        </div>
+                        <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.4 }}>
+                          Pay with cash when courier delivers your package to your doorstep. Open parcel allowed before paying.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
               </div>
 
@@ -698,7 +1138,7 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
               <div style={{ marginTop: '8px' }}>
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isUploadingReceipt}
                   className="btn-luxury btn-luxury-primary"
                   style={{
                     width: '100%',
@@ -706,13 +1146,21 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
                     fontSize: '16px',
                     fontWeight: 700,
                     letterSpacing: '0.02em',
-                    boxShadow: '0 8px 24px rgba(95, 143, 110, 0.3)',
-                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                    opacity: isSubmitting ? 0.8 : 1,
+                    boxShadow: paymentMethod === 'bank_transfer'
+                      ? '0 8px 24px rgba(22, 163, 74, 0.3)'
+                      : '0 8px 24px rgba(95, 143, 110, 0.3)',
+                    cursor: (isSubmitting || isUploadingReceipt) ? 'not-allowed' : 'pointer',
+                    opacity: (isSubmitting || isUploadingReceipt) ? 0.8 : 1,
+                    background: paymentMethod === 'bank_transfer' ? '#16a34a' : undefined,
+                    borderColor: paymentMethod === 'bank_transfer' ? '#16a34a' : undefined,
                   }}
                 >
                   {isSubmitting ? (
                     <span>Placing Your Order...</span>
+                  ) : isUploadingReceipt ? (
+                    <span>Uploading Screenshot...</span>
+                  ) : paymentMethod === 'bank_transfer' ? (
+                    <span>Complete Order (Bank Transfer) — Rs. {totalAmount.toLocaleString()}</span>
                   ) : (
                     <span>Place Order (Cash on Delivery) — Rs. {totalAmount.toLocaleString()}</span>
                   )}
@@ -738,6 +1186,65 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Package size={14} /> Open Parcel Allowed
                   </span>
+                </div>
+
+                {/* Direct WhatsApp Support Helper Banner */}
+                <div style={{
+                  marginTop: '18px',
+                  background: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: '12px',
+                  padding: '14px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                  flexWrap: 'wrap',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      background: '#25D366',
+                      color: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}>
+                      <MessageSquare size={18} />
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '13px', color: '#166534' }}>
+                        Facing any issue placing your order?
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#15803d' }}>
+                        Contact us on WhatsApp for instant assistance or order via chat.
+                      </div>
+                    </div>
+                  </div>
+                  <a
+                    href="https://wa.me/923177299713?text=Assalam-o-Alaikum!%20I%20am%20having%20trouble%20placing%20my%20order%20on%20Kaprafix.%20Please%20help."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      background: '#25D366',
+                      color: '#ffffff',
+                      padding: '8px 14px',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      textDecoration: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <MessageSquare size={15} />
+                    <span>Chat on WhatsApp</span>
+                  </a>
                 </div>
               </div>
 
@@ -887,9 +1394,27 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
                   <span>Rs. {subtotal.toLocaleString()}</span>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
-                  <span>Shipping Fee</span>
-                  <span style={{ color: 'var(--text)', fontWeight: 600 }}>Rs. {shippingCost}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-muted)' }}>
+                  <span>Delivery Fee</span>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ color: paymentMethod === 'bank_transfer' ? '#16a34a' : 'var(--text)', fontWeight: 600 }}>
+                      Rs. {shippingCost}
+                    </span>
+                    {paymentMethod === 'bank_transfer' ? (
+                      <span style={{
+                        display: 'inline-block',
+                        marginLeft: '6px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        background: '#dcfce7',
+                        color: '#15803d',
+                        padding: '1px 6px',
+                        borderRadius: '10px',
+                      }}>
+                        Save Rs. 120
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
 
                 <div style={{
@@ -902,8 +1427,10 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
                   paddingTop: '14px',
                   marginTop: '4px',
                 }}>
-                  <span>Total (Cash on Delivery)</span>
-                  <span style={{ color: 'var(--text)' }}>Rs. {totalAmount.toLocaleString()}</span>
+                  <span>Total ({paymentMethod === 'bank_transfer' ? 'Bank Transfer' : 'Cash on Delivery'})</span>
+                  <span style={{ color: paymentMethod === 'bank_transfer' ? '#16a34a' : 'var(--text)' }}>
+                    Rs. {totalAmount.toLocaleString()}
+                  </span>
                 </div>
               </div>
 

@@ -98,9 +98,15 @@ export default function ThankYouClient() {
     }
   }, [orderId, orderNumber, totalValueParam, customerName]);
 
+  const paymentMethodParam = searchParams.get('paymentMethod') || orderData?.paymentMethod || 'cod';
+  const isBankTransfer = paymentMethodParam === 'bank_transfer';
+  const shippingFeeNum = orderData?.shippingFee !== undefined 
+    ? Number(orderData.shippingFee) 
+    : (isBankTransfer ? 80 : 200);
+
   const finalTotal = parseFloat(totalValueParam) || (orderData?.totalPrice ? parseFloat(orderData.totalPrice) : 0);
   const waMessage = encodeURIComponent(
-    `Assalam-o-Alaikum! I have placed an order for Kaprafix Hem Tape.\nOrder Number: ${orderNumber}\nTotal: Rs. ${finalTotal.toLocaleString()}\nName: ${customerName}`
+    `Assalam-o-Alaikum! I have placed an order for Kaprafix Hem Tape.\nOrder Number: ${orderNumber}\nPayment: ${isBankTransfer ? 'Direct Bank Transfer (Rs. 80 Delivery)' : 'Cash on Delivery'}\nTotal: Rs. ${finalTotal.toLocaleString()}\nName: ${customerName}`
   );
 
   return (
@@ -137,13 +143,13 @@ export default function ThankYouClient() {
             fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
-            color: 'var(--accent)',
-            background: 'var(--accent-light)',
+            color: isBankTransfer ? '#166534' : 'var(--accent)',
+            background: isBankTransfer ? '#dcfce7' : 'var(--accent-light)',
             padding: '4px 12px',
             borderRadius: '20px',
             marginBottom: '12px',
           }}>
-            Order Confirmed
+            {isBankTransfer ? 'Payment Receipt Received' : 'Order Confirmed'}
           </span>
 
           <h1 style={{
@@ -157,7 +163,9 @@ export default function ThankYouClient() {
           </h1>
 
           <p style={{ fontSize: '15px', color: 'var(--text-muted)', maxWidth: '520px', margin: '0 auto 24px', lineHeight: 1.6 }}>
-            Your order has been received and is being prepared for dispatch. Our delivery partner will deliver to your doorstep within <strong>2–3 working days</strong>.
+            {isBankTransfer
+              ? 'Your order and payment screenshot have been received. Our dispatch team will verify and prepare your parcel within 2–3 working days.'
+              : 'Your order has been received and is being prepared for dispatch. Our delivery partner will deliver to your doorstep within 2–3 working days.'}
           </p>
 
           {/* Order ID Pill */}
@@ -182,13 +190,59 @@ export default function ThankYouClient() {
             <div style={{ height: '30px', width: '1px', background: '#cbd5e1' }} />
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontSize: '11px', color: 'var(--text-light)', textTransform: 'uppercase', fontWeight: 700 }}>
-                Payment (Cash on Delivery)
+                Payment ({isBankTransfer ? 'Bank Transfer' : 'Cash on Delivery'})
               </div>
-              <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--accent)' }}>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: isBankTransfer ? '#16a34a' : 'var(--accent)' }}>
                 Rs. {finalTotal.toLocaleString()}
               </div>
             </div>
           </div>
+
+          {/* Bank Transfer Receipt Card (if Bank Transfer) */}
+          {isBankTransfer && (
+            <div style={{
+              background: '#f0fdf4',
+              border: '1px solid #86efac',
+              borderRadius: '14px',
+              padding: '16px 20px',
+              textAlign: 'left',
+              marginBottom: '24px',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontWeight: 800, fontSize: '14px', color: '#166534' }}>
+                  🏦 Meezan Bank Transfer
+                </span>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#15803d', background: '#dcfce7', padding: '2px 8px', borderRadius: '10px' }}>
+                  Delivery: Rs. 80 (Saved Rs. 120)
+                </span>
+              </div>
+              <p style={{ margin: '0 0 10px', fontSize: '13px', color: '#166534', lineHeight: 1.5 }}>
+                Account Title: <strong>ABEER KHALID</strong> • Account: <strong>00300115740934</strong>
+              </p>
+              {orderData?.receiptUrl && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#ffffff', padding: '10px 14px', borderRadius: '10px', border: '1px solid #bbf7d0' }}>
+                  <img
+                    src={orderData.receiptUrl}
+                    alt="Uploaded payment proof"
+                    style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e2e8f0' }}
+                  />
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#166534' }}>
+                      Payment Screenshot Attached
+                    </div>
+                    <a
+                      href={orderData.receiptUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: '12px', color: '#0284c7', textDecoration: 'underline' }}
+                    >
+                      View Uploaded Screenshot
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Status Timeline */}
           <div style={{
@@ -214,7 +268,7 @@ export default function ThankYouClient() {
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <span style={{ fontWeight: 700, color: 'var(--accent)' }}>3.</span>
-                <span>Check parcel & pay cash upon delivery.</span>
+                <span>{isBankTransfer ? 'Parcel is delivered to your doorstep (Already Paid).' : 'Check parcel & pay cash upon delivery.'}</span>
               </div>
             </div>
           </div>
@@ -240,12 +294,13 @@ export default function ThankYouClient() {
 
                 <div style={{ background: '#fdfdfd', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)' }}>
                   <div style={{ fontWeight: 700, color: 'var(--text)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Phone size={14} color="var(--accent)" /> Contact Details
+                    <Phone size={14} color="var(--accent)" /> Contact & Payment
                   </div>
                   <div style={{ color: 'var(--text-muted)', lineHeight: 1.4 }}>
                     Phone: {orderData.customer?.phone}<br />
                     {orderData.customer?.email && <>Email: {orderData.customer?.email}<br /></>}
-                    Delivery: Standard Courier (Rs. 200)
+                    Delivery: {isBankTransfer ? 'Discounted Courier (Rs. 80)' : 'Standard Courier (Rs. 200)'}<br />
+                    Method: {isBankTransfer ? 'Meezan Bank Transfer (Advance)' : 'Cash on Delivery'}
                   </div>
                 </div>
               </div>

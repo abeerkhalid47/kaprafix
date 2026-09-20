@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createShopifyOrder } from '@/lib/shopifyAdmin';
 import { sendMetaCapiEvent } from '@/lib/metaCapi';
+import { sendAdminOrderEmail } from '@/lib/resend';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { customer, shippingAddress, lineItems, note, totalPrice } = body;
+    const { 
+      customer, 
+      shippingAddress, 
+      lineItems, 
+      note, 
+      totalPrice,
+      paymentMethod = 'cod',
+      shippingFee,
+      receiptUrl = null,
+    } = body;
 
     // Validation
     if (!customer?.firstName || !customer?.phone) {
@@ -25,6 +35,17 @@ export async function POST(req: NextRequest) {
     if (!lineItems || !Array.isArray(lineItems) || lineItems.length === 0) {
       return NextResponse.json(
         { error: 'Your cart is empty. Please add items to checkout.' },
+        { status: 400 }
+      );
+    }
+
+    const isBankTransfer = paymentMethod === 'bank_transfer';
+    const effectiveShippingFee = typeof shippingFee === 'number' ? shippingFee : (isBankTransfer ? 80 : 200);
+
+    // If Bank Transfer, require screenshot receipt
+    if (isBankTransfer && !receiptUrl) {
+      return NextResponse.json(
+        { error: 'Please upload a screenshot of your bank transfer receipt.' },
         { status: 400 }
       );
     }
@@ -55,6 +76,9 @@ export async function POST(req: NextRequest) {
       })),
       note: note?.trim() || '',
       totalPrice: totalPrice,
+      paymentMethod: isBankTransfer ? 'bank_transfer' : 'cod',
+      shippingFee: effectiveShippingFee,
+      receiptUrl: receiptUrl,
     });
 
     if (!orderResult.success) {
@@ -81,6 +105,10 @@ export async function POST(req: NextRequest) {
     }));
     const contentIds = lineItems.map((item: any) => String(item.variantId || item.id || 'kaprafix-tape'));
     const totalQuantity = lineItems.reduce((acc: number, item: any) => acc + (Number(item.quantity) || 1), 0);
+    const subtotalCalculated = lineItems.reduce(
+      (sum: number, item: any) => sum + (parseFloat(item.price?.amount || item.price || '0') || 0) * (Number(item.quantity) || 1),
+      0
+    );
 
     const userPayload = {
       clientIpAddress,
@@ -97,11 +125,12 @@ export async function POST(req: NextRequest) {
       zip: shippingAddress.zip?.trim() || null,
     };
 
-    // Dispatch Meta Conversions API Server Events (non-blocking)
     const eventIdentifier = orderResult.orderNumber || orderResult.orderId;
+    const paymentLabel = isBankTransfer ? 'Bank Transfer' : 'Cash on Delivery';
 
+    // Dispatch Meta Conversions API & Resend Admin Email (non-blocking)
     Promise.allSettled([
-      // 1. AddPaymentInfo Server Event
+      // 1. Meta AddPaymentInfo Server Event
       sendMetaCapiEvent({
         eventName: 'AddPaymentInfo',
         eventId: `pay_${eventIdentifier}`,
@@ -113,14 +142,14 @@ export async function POST(req: NextRequest) {
           content_type: 'product',
           content_ids: contentIds,
           contents: formattedContents,
-          payment_type: 'Cash on Delivery',
+          payment_type: paymentLabel,
         },
       }),
 
-      // 2. Purchase Server Event
+      // 2. Meta Purchase Server Event
       sendMetaCapiEvent({
         eventName: 'Purchase',
-        eventId: eventIdentifier, // Matches client-side eventID for deduplication
+        eventId: eventIdentifier,
         eventSourceUrl: referer,
         user: userPayload,
         customData: {
@@ -133,8 +162,39 @@ export async function POST(req: NextRequest) {
           order_id: eventIdentifier,
         },
       }),
+
+      // 3. Resend Admin Email to kaprafix@gmail.com
+      sendAdminOrderEmail({
+        orderNumber: orderResult.orderNumber || eventIdentifier,
+        orderId: orderResult.orderId,
+        customer: {
+          firstName: customer.firstName.trim(),
+          lastName: customer.lastName?.trim() || '',
+          email: customer.email?.trim() || '',
+          phone: customer.phone.trim(),
+        },
+        shippingAddress: {
+          address1: shippingAddress.address1.trim(),
+          address2: shippingAddress.address2?.trim() || '',
+          city: shippingAddress.city.trim(),
+          province: shippingAddress.province?.trim() || '',
+          country: 'Pakistan',
+          zip: shippingAddress.zip?.trim() || '',
+        },
+        lineItems: lineItems.map((it: any) => ({
+          title: it.title,
+          quantity: Number(it.quantity) || 1,
+          price: it.price?.amount || it.price,
+        })),
+        subtotal: subtotalCalculated,
+        shippingFee: effectiveShippingFee,
+        totalPrice: orderTotalNum,
+        paymentMethod: isBankTransfer ? 'bank_transfer' : 'cod',
+        receiptUrl: receiptUrl,
+        note: note?.trim() || '',
+      }),
     ]).catch((err) => {
-      console.error('[Meta CAPI Dispatch Error]:', err);
+      console.error('[Background Notification Dispatch Error]:', err);
     });
 
     return NextResponse.json({
@@ -145,6 +205,9 @@ export async function POST(req: NextRequest) {
       currency: orderResult.currency,
       statusUrl: orderResult.statusUrl,
       isMock: orderResult.isMock,
+      paymentMethod: isBankTransfer ? 'bank_transfer' : 'cod',
+      shippingFee: effectiveShippingFee,
+      receiptUrl: receiptUrl,
     });
   } catch (error: any) {
     console.error('Error in /api/order:', error);

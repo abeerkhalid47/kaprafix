@@ -33,6 +33,9 @@ export interface CreateOrderInput {
   note?: string;
   tags?: string[];
   totalPrice?: number;
+  paymentMethod?: 'bank_transfer' | 'cod';
+  shippingFee?: number;
+  receiptUrl?: string | null;
 }
 
 export interface ShopifyOrderResult {
@@ -211,12 +214,23 @@ export async function createShopifyOrder(
       return lineItemObj;
     });
 
+    const isBankTransfer = input.paymentMethod === 'bank_transfer';
+    const deliveryFeeNum = input.shippingFee !== undefined ? input.shippingFee : (isBankTransfer ? 80 : 200);
+
     const tags = [
       'NextJS In-App Checkout',
-      'Cash on Delivery',
-      'COD',
+      isBankTransfer ? 'Bank Transfer' : 'Cash on Delivery',
+      isBankTransfer ? 'Advance Payment' : 'COD',
+      input.receiptUrl ? 'Payment Proof Attached' : '',
       ...(input.tags || []),
-    ].join(', ');
+    ].filter(Boolean).join(', ');
+
+    const paymentNote = isBankTransfer
+      ? `Payment: Direct Bank Transfer (Meezan Bank - Abeer Khalid)`
+      : `Payment: Cash on Delivery (COD)`;
+    const receiptNote = input.receiptUrl ? `\nPayment Proof: ${input.receiptUrl}` : '';
+    const customUserNote = input.note ? `\nInstructions: ${input.note}` : '';
+    const fullOrderNote = `${paymentNote}${receiptNote}${customUserNote}`;
 
     const orderPayload = {
       order: {
@@ -249,16 +263,18 @@ export async function createShopifyOrder(
         },
         email: cleanEmail,
         phone: formattedPhone || undefined,
-        note: input.note || 'Order placed via Kaprafix in-app checkout (Cash on Delivery)',
-        financial_status: 'pending', // Cash on delivery
+        note: fullOrderNote,
+        financial_status: 'pending',
         tags: tags,
         send_receipt: Boolean(cleanEmail),
         send_fulfillment_receipt: Boolean(cleanEmail),
         shipping_lines: [
           {
-            title: 'Standard Delivery (Cash on Delivery)',
-            price: '200.00',
-            code: 'COD_200',
+            title: isBankTransfer
+              ? 'Special Delivery (Bank Transfer Advance)'
+              : 'Standard Delivery (Cash on Delivery)',
+            price: deliveryFeeNum.toFixed(2),
+            code: isBankTransfer ? 'BANK_TRANSFER_80' : 'COD_200',
           },
         ],
       },
