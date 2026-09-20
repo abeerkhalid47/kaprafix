@@ -46,7 +46,8 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
 
   // Form State
   const [formData, setFormData] = useState({
-    fullName: '',
+    firstName: '',
+    lastName: '',
     phone: '',
     email: '',
     address: '',
@@ -220,7 +221,8 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
         userData: {
           ph: formData.phone,
           em: formData.email,
-          fn: formData.fullName.split(' ')[0],
+          fn: formData.firstName.trim(),
+          ln: formData.lastName.trim(),
           ct: formData.city,
           st: formData.province,
           country: 'pk',
@@ -234,8 +236,13 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
     setFormError(null);
 
     // Form Validations
-    if (!formData.fullName.trim()) {
-      setFormError('Please enter your full name.');
+    if (!formData.firstName.trim()) {
+      setFormError('Please enter your first name.');
+      return;
+    }
+
+    if (!formData.lastName.trim()) {
+      setFormError('Please enter your last name.');
       return;
     }
 
@@ -283,7 +290,8 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
         userData: {
           ph: cleanPhone,
           em: formData.email.trim(),
-          fn: formData.fullName.trim().split(' ')[0],
+          fn: formData.firstName.trim(),
+          ln: formData.lastName.trim(),
           ct: formData.city.trim(),
           st: formData.province,
           country: 'pk',
@@ -294,10 +302,8 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
     setIsSubmitting(true);
 
     try {
-      // Split name into first and last
-      const nameParts = formData.fullName.trim().split(' ');
-      const firstName = nameParts[0] || 'Customer';
-      const lastName = nameParts.slice(1).join(' ') || '';
+      const firstName = formData.firstName.trim();
+      const lastName = formData.lastName.trim();
 
       // If Bank Transfer and receipt hasn't finished uploading yet, upload now
       let finalReceiptUrl = uploadedReceiptUrl;
@@ -372,7 +378,9 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
         shippingFee: shippingCost,
         receiptUrl: finalReceiptUrl,
         customer: {
-          name: formData.fullName,
+          name: `${firstName} ${lastName}`.trim(),
+          firstName,
+          lastName,
           phone: formData.phone,
           email: formData.email,
           address: formData.address,
@@ -545,29 +553,55 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {/* Full Name */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text)', marginBottom: '6px' }}>
-                      Full Name <span style={{ color: '#dc2626' }}>*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="fullName"
-                      placeholder="e.g. Muhammad Ali"
-                      required
-                      value={formData.fullName}
-                      onChange={handleInputChange}
-                      style={{
-                        width: '100%',
-                        padding: '12px 14px',
-                        borderRadius: '10px',
-                        border: '1px solid var(--border)',
-                        fontSize: '15px',
-                        outline: 'none',
-                        transition: 'border-color 0.2s',
-                        background: '#fafafa',
-                      }}
-                    />
+                  {/* First & Last Name Fields (Separated) */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text)', marginBottom: '6px' }}>
+                        First Name <span style={{ color: '#dc2626' }}>*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="firstName"
+                        placeholder="e.g. Muhammad"
+                        required
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                        style={{
+                          width: '100%',
+                          padding: '12px 14px',
+                          borderRadius: '10px',
+                          border: '1px solid var(--border)',
+                          fontSize: '15px',
+                          outline: 'none',
+                          transition: 'border-color 0.2s',
+                          background: '#fafafa',
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text)', marginBottom: '6px' }}>
+                        Last Name <span style={{ color: '#dc2626' }}>*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="lastName"
+                        placeholder="e.g. Ali"
+                        required
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                        style={{
+                          width: '100%',
+                          padding: '12px 14px',
+                          borderRadius: '10px',
+                          border: '1px solid var(--border)',
+                          fontSize: '15px',
+                          outline: 'none',
+                          transition: 'border-color 0.2s',
+                          background: '#fafafa',
+                        }}
+                      />
+                    </div>
                   </div>
 
                   {/* Phone & WhatsApp */}
