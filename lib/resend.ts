@@ -87,7 +87,7 @@ export async function sendAdminOrderEmail(input: AdminOrderEmailInput) {
               ? `
               <div style="margin-top: 14px; border-top: 1px dashed #bbf7d0; padding-top: 12px;">
                 <p style="font-size: 13px; font-weight: 700; color: #166534; margin: 0 0 8px;">
-                  Uploaded Payment Screenshot / Receipt:
+                  📸 Verified Payment Screenshot / Receipt (Attached to this email):
                 </p>
                 <div style="text-align: center; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #dcfce7;">
                   <a href="${input.receiptUrl}" target="_blank" style="display: inline-block;">
@@ -101,7 +101,7 @@ export async function sendAdminOrderEmail(input: AdminOrderEmailInput) {
                 </div>
               </div>
             `
-              : `<p style="color: #b91c1c; font-size: 13px; margin: 8px 0 0;">⚠️ No screenshot URL provided.</p>`
+              : `<p style="color: #b91c1c; font-size: 13px; margin: 8px 0 0; font-weight: 700;">⚠️ Screenshot proof was missing on submission.</p>`
           }
         </div>
       `
@@ -231,12 +231,23 @@ export async function sendAdminOrderEmail(input: AdminOrderEmailInput) {
 
     const fromAddress = process.env.RESEND_FROM_EMAIL || 'Kaprafix Orders <onboarding@resend.dev>';
 
-    const response = await resend.emails.send({
+    const emailPayload: any = {
       from: fromAddress,
       to: 'kaprafix@gmail.com',
       subject: subject,
       html: html,
-    });
+    };
+
+    if (isBankTransfer && input.receiptUrl && input.receiptUrl.startsWith('http')) {
+      emailPayload.attachments = [
+        {
+          filename: `receipt-order-${input.orderNumber}.jpg`,
+          path: input.receiptUrl,
+        },
+      ];
+    }
+
+    const response = await resend.emails.send(emailPayload);
 
     console.log(`[Resend Email] Successfully dispatched order notification email to kaprafix@gmail.com:`, response);
     return { success: true, response };

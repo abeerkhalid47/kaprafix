@@ -262,13 +262,16 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
       return;
     }
 
-    // Bank transfer proof validation
+    // Bank transfer proof validation: STRICTLY REQUIRED FOR ONLINE PAYMENT
     if (paymentMethod === 'bank_transfer') {
       if (!receiptFile && !uploadedReceiptUrl) {
-        setFormError('Please upload a screenshot of your bank transfer receipt to complete your order.');
-        // Scroll to payment section
-        const paymentSection = document.getElementById('payment-method-card');
-        paymentSection?.scrollIntoView({ behavior: 'smooth' });
+        setReceiptError('Payment screenshot is strictly required when paying online. Please upload your transfer slip/receipt.');
+        setFormError('Please attach your payment screenshot below to complete your order.');
+        const uploadBox = document.getElementById('receipt-upload-box');
+        uploadBox?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => {
+          fileInputRef.current?.click();
+        }, 300);
         return;
       }
     }
@@ -320,6 +323,13 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
         } else {
           throw new Error(upData.error || 'Failed to upload screenshot. Please try again.');
         }
+      }
+
+      if (paymentMethod === 'bank_transfer' && !finalReceiptUrl) {
+        setReceiptError('Receipt screenshot is required. Please attach your payment screenshot.');
+        setFormError('Receipt image is required for online bank transfer. Please attach your screenshot.');
+        setIsSubmitting(false);
+        return;
       }
 
       const defaultNote = paymentMethod === 'bank_transfer'
@@ -972,11 +982,24 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
                           </div>
                         </div>
 
-                        {/* Screenshot Upload Dropzone */}
-                        <div style={{ marginTop: '16px' }}>
-                          <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#166534', marginBottom: '8px' }}>
-                            Upload Transfer Screenshot / Receipt <span style={{ color: '#dc2626' }}>*</span>
-                          </label>
+                        {/* Screenshot Upload Dropzone (Strictly Required) */}
+                        <div id="receipt-upload-box" style={{ marginTop: '16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: receiptError ? '#dc2626' : '#166534' }}>
+                              Payment Screenshot / Receipt <span style={{ color: '#dc2626' }}>* (Strictly Required)</span>
+                            </label>
+                            <span style={{
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              background: receiptError ? '#fee2e2' : '#dcfce7',
+                              color: receiptError ? '#dc2626' : '#15803d',
+                              padding: '2px 8px',
+                              borderRadius: '12px',
+                              border: receiptError ? '1px solid #fca5a5' : '1px solid #bbf7d0',
+                            }}>
+                              {receiptError ? '⚠️ Receipt Missing' : 'Required for Bank Transfer'}
+                            </span>
+                          </div>
 
                           <input
                             ref={fileInputRef}
@@ -990,33 +1013,34 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
                             <div
                               onClick={() => fileInputRef.current?.click()}
                               style={{
-                                border: '2px dashed #86efac',
+                                border: receiptError ? '2px dashed #ef4444' : '2px dashed #86efac',
                                 borderRadius: '12px',
-                                padding: '20px',
+                                padding: '22px 16px',
                                 textAlign: 'center',
-                                background: '#ffffff',
+                                background: receiptError ? '#fef2f2' : '#ffffff',
                                 cursor: 'pointer',
-                                transition: 'background 0.2s',
+                                transition: 'all 0.2s',
+                                boxShadow: receiptError ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : 'none',
                               }}
                             >
                               <div style={{
-                                width: '42px',
-                                height: '42px',
+                                width: '44px',
+                                height: '44px',
                                 borderRadius: '50%',
-                                background: '#dcfce7',
-                                color: '#16a34a',
+                                background: receiptError ? '#fee2e2' : '#dcfce7',
+                                color: receiptError ? '#dc2626' : '#16a34a',
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 marginBottom: '8px',
                               }}>
-                                <Upload size={20} style={{ margin: 'auto' }} />
+                                <Upload size={22} style={{ margin: 'auto' }} />
                               </div>
-                              <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
-                                Tap to attach payment screenshot
+                              <div style={{ fontSize: '14px', fontWeight: 700, color: receiptError ? '#991b1b' : '#0f172a' }}>
+                                Tap to attach payment screenshot <span style={{ color: '#dc2626' }}>*</span>
                               </div>
-                              <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-                                PNG, JPG, or WEBP (Max 10MB)
+                              <div style={{ fontSize: '12px', color: receiptError ? '#b91c1c' : '#64748b', marginTop: '4px' }}>
+                                PNG, JPG, or WEBP (Max 10MB) • Upload proof of transfer
                               </div>
                             </div>
                           ) : (
@@ -1096,9 +1120,22 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
                           )}
 
                           {receiptError && (
-                            <p style={{ color: '#dc2626', fontSize: '12px', marginTop: '6px', fontWeight: 600 }}>
-                              {receiptError}
-                            </p>
+                            <div style={{
+                              background: '#fef2f2',
+                              border: '1px solid #fecaca',
+                              color: '#991b1b',
+                              padding: '10px 14px',
+                              borderRadius: '8px',
+                              fontSize: '13px',
+                              marginTop: '10px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              fontWeight: 600,
+                            }}>
+                              <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                              <span>{receiptError}</span>
+                            </div>
                           )}
                         </div>
 
@@ -1194,7 +1231,11 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
                   ) : isUploadingReceipt ? (
                     <span>Uploading Screenshot...</span>
                   ) : paymentMethod === 'bank_transfer' ? (
-                    <span>Complete Order (Bank Transfer) — Rs. {totalAmount.toLocaleString()}</span>
+                    !receiptFile && !uploadedReceiptUrl ? (
+                      <span>📸 Attach Receipt to Complete Order — Rs. {totalAmount.toLocaleString()}</span>
+                    ) : (
+                      <span>✓ Complete Order (Bank Transfer) — Rs. {totalAmount.toLocaleString()}</span>
+                    )
                   ) : (
                     <span>Place Order (Cash on Delivery) — Rs. {totalAmount.toLocaleString()}</span>
                   )}

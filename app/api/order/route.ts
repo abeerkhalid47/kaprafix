@@ -42,10 +42,10 @@ export async function POST(req: NextRequest) {
     const isBankTransfer = paymentMethod === 'bank_transfer';
     const effectiveShippingFee = typeof shippingFee === 'number' ? shippingFee : (isBankTransfer ? 80 : 200);
 
-    // If Bank Transfer, require screenshot receipt
-    if (isBankTransfer && !receiptUrl) {
+    // If Bank Transfer, strictly require screenshot receipt
+    if (isBankTransfer && (!receiptUrl || typeof receiptUrl !== 'string' || !receiptUrl.trim())) {
       return NextResponse.json(
-        { error: 'Please upload a screenshot of your bank transfer receipt.' },
+        { error: 'Payment receipt screenshot is strictly required when paying through online bank transfer. Please upload your receipt.' },
         { status: 400 }
       );
     }
