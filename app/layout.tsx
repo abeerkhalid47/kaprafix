@@ -34,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body suppressHydrationWarning>
         <MetaPixelScript />
         <MetaPixelTracker />
+        <TikTokPixelScript />
         <CartProvider>
           <DynamicTitle />
           {children}
