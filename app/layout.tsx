@@ -26,6 +26,7 @@ export const metadata: Metadata = {
 import WhatsAppSticky from './components/WhatsAppSticky';
 import MetaPixelScript from './components/MetaPixelScript';
 import MetaPixelTracker from './components/MetaPixelTracker';
+import TikTokPixelScript from './components/TikTokPixelScript';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
