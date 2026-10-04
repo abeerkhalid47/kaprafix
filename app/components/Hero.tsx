@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/context/CartContext';
+import { trackTikTokEvent } from '@/lib/tiktok';
 import { type ShopifyProduct, formatPrice, getDiscountPercent } from '@/lib/shopify';
 
 import { Minus, Plus, ShoppingBag, ChevronDown } from 'lucide-react';
