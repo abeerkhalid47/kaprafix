@@ -385,6 +385,13 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
       if (!res.ok || !data.success) {
         throw new Error(data.error || 'Failed to complete order. Please try again.');
       }
+      trackTikTokEvent('Purchase', {
+  content_type: 'product',
+  content_ids: checkoutItems.map((item) => item.id),
+  quantity: checkoutItems.reduce((sum, item) => sum + item.quantity, 0),
+  value: totalAmount,
+  currency: 'PKR',
+});
 
       // Store order details in sessionStorage for the thank-you screen
       const orderSummaryData = {
