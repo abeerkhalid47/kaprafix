@@ -37,10 +37,20 @@ export default function Hero({ product }: { product: ShopifyProduct }) {
 
   const [mainImageIndex, setMainImageIndex] = useState(0);
 
-  async function handleAddToCart() {
-    if (!variant) return;
-    await addItem(variant.id, qty);
-  }
+ async function handleAddToCart() {
+  if (!variant) return;
+
+  await addItem(variant.id, qty);
+
+  trackTikTokEvent('AddToCart', {
+    content_type: 'product',
+    content_ids: [variant.id],
+    description: product.title,
+    quantity: qty,
+    value: parseFloat(variant.price.amount) * qty,
+    currency: variant.price.currencyCode || 'PKR',
+  });
+}
 
   const handleDecrease = () => setQty((prev) => Math.max(1, prev - 1));
   const handleIncrease = () => setQty((prev) => prev + 1);
