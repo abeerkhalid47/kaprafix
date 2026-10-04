@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { type ShopifyProduct, formatPrice, getDiscountPercent } from '@/lib/shopify';
 import { trackInitiateCheckout, trackAddPaymentInfo } from '@/lib/pixel';
+import { trackTikTokEvent } from '@/lib/tiktok';
 import { 
   ShieldCheck, 
   Truck, 
@@ -138,6 +139,13 @@ export default function CheckoutClient({ product }: CheckoutClientProps) {
         value: totalAmount,
         currency: 'PKR',
       });
+      trackTikTokEvent('InitiateCheckout', {
+  content_type: 'product',
+  content_ids: checkoutItems.map((item) => item.id),
+  quantity: checkoutItems.reduce((sum, item) => sum + item.quantity, 0),
+  value: totalAmount,
+  currency: 'PKR',
+});
     }
   }, [checkoutItems, totalAmount]);
 
